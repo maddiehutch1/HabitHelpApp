@@ -1,10 +1,10 @@
 # ─── Local AI Working Space ───────────────────────────────────────────────────
-ai/
+# ai/
 
 # ─── AI / Editor Config (local only) ─────────────────────────────────────────
-claude.md
-CLAUDE.md
-.cursorrules
+# claude.md
+# CLAUDE.md
+# .cursorrules
 
 # ─── Environment & Secrets ────────────────────────────────────────────────────
 .env
