@@ -48,6 +48,15 @@ class CardsNotifier extends Notifier<List<CardModel>> {
   Future<int> getActiveCardCount() async {
     return _repo.getActiveCardCount();
   }
+
+  Future<int> getArchivedCardCount() async {
+    return _repo.getArchivedCardCount();
+  }
+
+  Future<void> archiveAllActiveCards(int archivedDate) async {
+    await _repo.archiveAllActiveCards(archivedDate);
+    await loadCards();
+  }
 }
 
 final cardsProvider = NotifierProvider<CardsNotifier, List<CardModel>>(

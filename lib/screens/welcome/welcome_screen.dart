@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme.dart';
-import '../onboarding/onboarding_goal_screen.dart';
+import '../create_card/create_card_goal_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -37,7 +37,7 @@ class WelcomeScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const OnboardingGoalScreen(),
+                          builder: (_) => const CreateCardGoalScreen(),
                         ),
                       );
                     },

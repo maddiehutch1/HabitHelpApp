@@ -13,7 +13,7 @@ class CardRepository {
     final db = await getDatabase();
     final rows = await db.query(
       'cards',
-      where: 'isArchived = 0',
+      where: 'isArchived = 0 AND archivedDate IS NULL',
       orderBy: 'sortOrder ASC, createdAt ASC',
     );
     final cards = rows.map(CardModel.fromMap).toList();
@@ -31,6 +31,39 @@ class CardRepository {
     final cards = rows.map(CardModel.fromMap).toList();
     cardRepoLog.fine('getAllArchivedCards → ${cards.length} archived cards');
     return cards;
+  }
+
+  /// Returns cards with archivedDate set (for Fresh Start mode Past Days screen)
+  Future<List<CardModel>> getArchivedByDate() async {
+    final db = await getDatabase();
+    final rows = await db.query(
+      'cards',
+      where: 'archivedDate IS NOT NULL',
+      orderBy: 'archivedDate DESC',
+    );
+    final cards = rows.map(CardModel.fromMap).toList();
+    cardRepoLog.fine('getArchivedByDate → ${cards.length} cards with archivedDate');
+    return cards;
+  }
+
+  /// Moves a card from past days back to today's deck (for Fresh Start mode)
+  Future<void> moveToToday(String id) async {
+    final db = await getDatabase();
+    final rows = await db.query(
+      'cards',
+      columns: ['sortOrder'],
+      where: 'archivedDate IS NULL',
+      orderBy: 'sortOrder DESC',
+      limit: 1,
+    );
+    final maxSort = rows.isEmpty ? 0 : (rows.first['sortOrder'] as int) + 1;
+    await db.update(
+      'cards',
+      {'archivedDate': null, 'sortOrder': maxSort},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    cardRepoLog.info('moveToToday id=$id → archivedDate=null, sortOrder=$maxSort');
   }
 
   Future<void> deleteCard(String id) async {
@@ -145,5 +178,27 @@ class CardRepository {
       'SELECT COUNT(*) as count FROM cards WHERE isArchived = 0',
     );
     return (result.first['count'] as int? ?? 0);
+  }
+
+  /// Returns count of cards with archivedDate set (for Fresh Start mode badge)
+  Future<int> getArchivedCardCount() async {
+    final db = await getDatabase();
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM cards WHERE archivedDate IS NOT NULL',
+    );
+    final count = result.first['count'] as int? ?? 0;
+    cardRepoLog.fine('getArchivedCardCount → $count cards');
+    return count;
+  }
+
+  /// Archives all active cards with the given archivedDate (for Fresh Start mode daily rollover)
+  Future<void> archiveAllActiveCards(int archivedDate) async {
+    final db = await getDatabase();
+    await db.update(
+      'cards',
+      {'archivedDate': archivedDate},
+      where: 'archivedDate IS NULL',
+    );
+    cardRepoLog.info('archiveAllActiveCards → all active cards archived with date=$archivedDate');
   }
 }
