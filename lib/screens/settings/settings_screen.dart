@@ -147,7 +147,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             child: Switch(
                               value: _isFreshStartMode,
                               onChanged: _toggleFreshStartMode,
-                              activeColor: AppColors.textPrimary,
+                              activeThumbColor: AppColors.textPrimary,
                               activeTrackColor:
                                   AppColors.textPrimary.withAlpha(102),
                               inactiveThumbColor: AppColors.textMuted,
@@ -195,7 +195,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             child: Switch(
                               value: _aiSuggestionsEnabled,
                               onChanged: _toggleAISuggestions,
-                              activeColor: AppColors.textPrimary,
+                              activeThumbColor: AppColors.textPrimary,
                               activeTrackColor:
                                   AppColors.textPrimary.withAlpha(102),
                               inactiveThumbColor: AppColors.textMuted,

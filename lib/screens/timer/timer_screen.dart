@@ -30,7 +30,6 @@ class _TimerScreenState extends State<TimerScreen>
   bool _isRunning = true;
   bool _isComplete = false;
   int _extraTimeSeconds = 0;
-  bool _isExtraTime = false;
   late final String _sessionId;
   late final int _startedAt;
 
@@ -196,7 +195,6 @@ class _TimerScreenState extends State<TimerScreen>
 
   void _handleKeepGoing() {
     setState(() {
-      _isExtraTime = true;
       _extraTimeSeconds += widget.card.durationSeconds;
       _secondsRemaining = widget.card.durationSeconds;
       _isComplete = false;

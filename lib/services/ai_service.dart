@@ -76,6 +76,12 @@ class AIService {
   ///
   /// Throws an exception if the API call fails.
   static Future<List<String>> generateFirstSteps(String goal) async {
+    if (_apiKey.isEmpty) {
+      throw Exception(
+        'No API key found. Run the app with --dart-define-from-file=.env.json',
+      );
+    }
+
     final response = await http.post(
       Uri.parse(_baseUrl),
       headers: {
@@ -88,7 +94,7 @@ class AIService {
           {
             'role': 'system',
             'content':
-                'You help people break down overwhelming tasks into tiny first steps.',
+                'You help people break down overwhelming tasks into tiny first steps. Always respond with a raw JSON array of strings — no markdown, no code fences.',
           },
           {
             'role': 'user',
@@ -100,7 +106,7 @@ Generate 3 tiny first steps they could take to start this task. Each step should
 - Start with a verb
 - Feel doable even when overwhelmed
 
-Format as a JSON array of strings. Example: ["Open the document", "Set a 2-minute timer", "Write one sentence"]''',
+Respond with ONLY a JSON array of strings. Example: ["Open the document", "Set a 2-minute timer", "Write one sentence"]''',
           },
         ],
         'max_tokens': 100,
@@ -113,10 +119,15 @@ Format as a JSON array of strings. Example: ["Open the document", "Set a 2-minut
     }
 
     final data = jsonDecode(response.body);
-    final content = data['choices'][0]['message']['content'];
+    final raw = (data['choices'][0]['message']['content'] as String).trim();
 
-    // Parse JSON array from response
-    final suggestions = (jsonDecode(content) as List).cast<String>();
+    // Strip markdown code fences that the model sometimes adds
+    final cleaned = raw
+        .replaceAll(RegExp(r'^```[a-z]*\s*', multiLine: true), '')
+        .replaceAll(RegExp(r'\s*```$', multiLine: true), '')
+        .trim();
+
+    final suggestions = (jsonDecode(cleaned) as List).cast<String>();
     return suggestions.take(3).toList();
   }
 
@@ -126,6 +137,12 @@ Format as a JSON array of strings. Example: ["Open the document", "Set a 2-minut
   ///
   /// Throws an exception if the API call fails.
   static Future<String> makeSmaller(String action) async {
+    if (_apiKey.isEmpty) {
+      throw Exception(
+        'No API key found. Run the app with --dart-define-from-file=.env.json',
+      );
+    }
+
     final response = await http.post(
       Uri.parse(_baseUrl),
       headers: {

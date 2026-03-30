@@ -114,11 +114,11 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.tune));
+      await tester.tap(find.byIcon(Icons.settings_outlined));
       await tester.pumpAndSettle();
 
-      // Settings screen should appear — look for "Resting" heading
-      expect(find.textContaining('Resting'), findsOneWidget);
+      // Settings screen should appear — look for "Fresh Start mode" heading
+      expect(find.textContaining('Fresh Start'), findsOneWidget);
     });
   });
 

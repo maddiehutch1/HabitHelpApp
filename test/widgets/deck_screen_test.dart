@@ -93,7 +93,7 @@ void main() {
     testWidgets('settings icon button is present in header', (tester) async {
       await tester.pumpWidget(_wrapWith([]));
       await tester.pump();
-      expect(find.byIcon(Icons.tune), findsOneWidget);
+      expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
     });
   });
 

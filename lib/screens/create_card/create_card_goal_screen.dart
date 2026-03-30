@@ -64,27 +64,37 @@ class _CreateCardGoalScreenState extends State<CreateCardGoalScreen> {
                   ),
                 ),
               ),
-              const Spacer(flex: 2),
-              const Text(
-                'What feels big and difficult right now?',
-                style: AppTextStyles.headline,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextField(
-                controller: _controller,
-                autofocus: true,
-                style: const TextStyle(
-                  fontSize: 18,
-                  color: AppColors.textPrimary,
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: AppSpacing.lg),
+                      const Text(
+                        'What feels big and difficult right now?',
+                        style: AppTextStyles.headline,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      TextField(
+                        controller: _controller,
+                        autofocus: true,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: AppColors.textPrimary,
+                        ),
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _advance(),
+                        decoration: const InputDecoration(
+                          hintText: 'e.g. Write my 15-page research paper',
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+                  ),
                 ),
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _advance(),
-                decoration: const InputDecoration(
-                  hintText: 'e.g. Write my 15-page research paper',
-                ),
-                onChanged: (_) => setState(() {}),
               ),
-              const Spacer(flex: 3),
+              const SizedBox(height: AppSpacing.sm),
               SizedBox(
                 width: double.infinity,
                 child: Semantics(

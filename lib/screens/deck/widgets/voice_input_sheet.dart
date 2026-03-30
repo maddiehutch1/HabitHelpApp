@@ -97,10 +97,11 @@ class _VoiceInputSheetState extends State<VoiceInputSheet>
           ),
           FilledButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              final nav = Navigator.of(context);
+              nav.pop();
               await openAppSettings();
               if (mounted) {
-                Navigator.of(context).pop(); // Close the voice input sheet
+                nav.pop(); // Close the voice input sheet
               }
             },
             child: const Text('Open Settings'),
@@ -232,15 +233,15 @@ class _VoiceInputSheetState extends State<VoiceInputSheet>
                 height: 120,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.textPrimary.withOpacity(
-                    0.1 + (_pulseController.value * 0.15),
+                  color: AppColors.textPrimary.withValues(
+                    alpha: 0.1 + (_pulseController.value * 0.15),
                   ),
                 ),
                 child: Icon(
                   Icons.mic,
                   size: 60,
-                  color: AppColors.textPrimary.withOpacity(
-                    0.6 + (_pulseController.value * 0.4),
+                  color: AppColors.textPrimary.withValues(
+                    alpha: 0.6 + (_pulseController.value * 0.4),
                   ),
                 ),
               );

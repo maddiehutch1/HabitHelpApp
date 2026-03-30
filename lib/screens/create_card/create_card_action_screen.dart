@@ -117,116 +117,121 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                   ),
                 ),
               ),
-              const Spacer(flex: 1),
-              Text(
-                widget.goal,
-                style: AppTextStyles.contextLabel,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              // Scrollable content — expands to fill space between back button
+              // and the pinned CTA button, and scrolls when keyboard appears.
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: AppSpacing.lg),
+                      Text(
+                        widget.goal,
+                        style: AppTextStyles.contextLabel,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      const Text(
+                        "What's one tiny step you could take first?",
+                        style: AppTextStyles.headline,
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      const Text(
+                        'Think in terms of 2 minutes or less. Smaller is better.',
+                        style: AppTextStyles.bodyMuted,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      TextField(
+                        controller: _controller,
+                        autofocus: true,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: AppColors.textPrimary,
+                        ),
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _advance(),
+                        decoration: const InputDecoration(
+                          hintText: 'e.g. Open the document',
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      if (!_loadingSuggestions && _suggestions == null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: AppSpacing.xs),
+                          child: TextButton(
+                            onPressed: _showAISuggestions,
+                            child: const Text("I'm stuck – show ideas"),
+                          ),
+                        ),
+                      if (_loadingSuggestions)
+                        const Padding(
+                          padding: EdgeInsets.only(top: AppSpacing.sm),
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      if (_suggestions != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: AppSpacing.sm),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _suggestions!.map((suggestion) {
+                              return ActionChip(
+                                label: Text(suggestion),
+                                onPressed: () {
+                                  setState(() {
+                                    _controller.text = suggestion;
+                                    _suggestions = null;
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      if (_controller.text.trim().isNotEmpty && !_loadingSmaller)
+                        Padding(
+                          padding: const EdgeInsets.only(top: AppSpacing.xs),
+                          child: TextButton(
+                            onPressed: _makeSmaller,
+                            child: const Text('Make this smaller'),
+                          ),
+                        ),
+                      if (_loadingSmaller)
+                        const Padding(
+                          padding: EdgeInsets.only(top: AppSpacing.sm),
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                      if (_smallerSuggestion != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: AppSpacing.sm),
+                          child: ActionChip(
+                            label: Text(_smallerSuggestion!),
+                            onPressed: () {
+                              setState(() {
+                                _controller.text = _smallerSuggestion!;
+                                _smallerSuggestion = null;
+                              });
+                            },
+                          ),
+                        ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+                  ),
+                ),
               ),
+              // CTA button pinned above keyboard
               const SizedBox(height: AppSpacing.sm),
-              const Text(
-                "What's one tiny step you could take first?",
-                style: AppTextStyles.headline,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              const Text(
-                'Think in terms of 2 minutes or less. Smaller is better.',
-                style: AppTextStyles.bodyMuted,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextField(
-                controller: _controller,
-                autofocus: true,
-                style: const TextStyle(
-                  fontSize: 18,
-                  color: AppColors.textPrimary,
-                ),
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _advance(),
-                decoration: const InputDecoration(
-                  hintText: 'e.g. Open the document',
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-              // "I'm stuck – show ideas" button
-              if (!_loadingSuggestions && _suggestions == null)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.xs),
-                  child: TextButton(
-                    onPressed: _showAISuggestions,
-                    child: const Text("I'm stuck – show ideas"),
-                  ),
-                ),
-              // Loading indicator for suggestions
-              if (_loadingSuggestions)
-                const Padding(
-                  padding: EdgeInsets.only(top: AppSpacing.sm),
-                  child: Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              // Display suggestions as chips
-              if (_suggestions != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.sm),
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _suggestions!.map((suggestion) {
-                      return ActionChip(
-                        label: Text(suggestion),
-                        onPressed: () {
-                          setState(() {
-                            _controller.text = suggestion;
-                            _suggestions = null; // Hide after selection
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ),
-              // "Make this smaller" button
-              if (_controller.text.trim().isNotEmpty && !_loadingSmaller)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.xs),
-                  child: TextButton(
-                    onPressed: _makeSmaller,
-                    child: const Text('Make this smaller'),
-                  ),
-                ),
-              // Loading indicator for smaller suggestion
-              if (_loadingSmaller)
-                const Padding(
-                  padding: EdgeInsets.only(top: AppSpacing.sm),
-                  child: Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-              // Display smaller suggestion as chip
-              if (_smallerSuggestion != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.sm),
-                  child: ActionChip(
-                    label: Text(_smallerSuggestion!),
-                    onPressed: () {
-                      setState(() {
-                        _controller.text = _smallerSuggestion!;
-                        _smallerSuggestion = null;
-                      });
-                    },
-                  ),
-                ),
-              const Spacer(flex: 3),
               SizedBox(
                 width: double.infinity,
                 child: Semantics(
                   button: true,
                   label: "Let's go",
                   child: FilledButton(
-                    onPressed: _controller.text.trim().isEmpty
-                        ? null
-                        : _advance,
+                    onPressed: _controller.text.trim().isEmpty ? null : _advance,
                     child: const Text("Let's go →"),
                   ),
                 ),
