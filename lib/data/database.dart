@@ -25,7 +25,7 @@ Future<Database> getDatabase() async {
   final path = _testDbPath ?? join(await getDatabasesPath(), 'microdeck.db');
   _db = await openDatabase(
     path,
-    version: 3,
+    version: 4,
     onCreate: (db, version) async {
       await db.execute('''
         CREATE TABLE cards (
@@ -35,7 +35,8 @@ Future<Database> getDatabase() async {
           durationSeconds INTEGER NOT NULL,
           sortOrder INTEGER NOT NULL,
           createdAt INTEGER NOT NULL,
-          isArchived INTEGER NOT NULL DEFAULT 0
+          isArchived INTEGER NOT NULL DEFAULT 0,
+          archivedDate INTEGER
         )
       ''');
       await db.execute('''
@@ -52,6 +53,17 @@ Future<Database> getDatabase() async {
           timeOfDayMinutes INTEGER NOT NULL,
           isRecurring INTEGER NOT NULL,
           isActive INTEGER NOT NULL
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE sessions (
+          id TEXT PRIMARY KEY,
+          cardId TEXT NOT NULL,
+          startedAt INTEGER NOT NULL,
+          completedAt INTEGER,
+          baseDurationSeconds INTEGER NOT NULL,
+          extraTimeSeconds INTEGER DEFAULT 0,
+          FOREIGN KEY (cardId) REFERENCES cards (id) ON DELETE CASCADE
         )
       ''');
     },
@@ -76,6 +88,20 @@ Future<Database> getDatabase() async {
             timeOfDayMinutes INTEGER NOT NULL,
             isRecurring INTEGER NOT NULL,
             isActive INTEGER NOT NULL
+          )
+        ''');
+      }
+      if (oldVersion < 4) {
+        await db.execute('ALTER TABLE cards ADD COLUMN archivedDate INTEGER');
+        await db.execute('''
+          CREATE TABLE sessions (
+            id TEXT PRIMARY KEY,
+            cardId TEXT NOT NULL,
+            startedAt INTEGER NOT NULL,
+            completedAt INTEGER,
+            baseDurationSeconds INTEGER NOT NULL,
+            extraTimeSeconds INTEGER DEFAULT 0,
+            FOREIGN KEY (cardId) REFERENCES cards (id) ON DELETE CASCADE
           )
         ''');
       }

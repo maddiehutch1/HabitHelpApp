@@ -26,6 +26,7 @@ const _androidChannel = AndroidNotificationDetails(
 const _notificationDetails = NotificationDetails(
   android: _androidChannel,
   iOS: DarwinNotificationDetails(),
+  macOS: DarwinNotificationDetails(),
 );
 
 class NotificationService {
@@ -42,6 +43,11 @@ class NotificationService {
     const initSettings = InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       iOS: DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      ),
+      macOS: DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
         requestSoundPermission: false,

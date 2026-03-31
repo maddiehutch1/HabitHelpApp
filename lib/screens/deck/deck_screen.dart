@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/models/card_model.dart';
-import '../../data/templates.dart';
 import '../../providers/cards_provider.dart';
 import '../../routes.dart';
 import '../../theme.dart';
+import '../create_card/create_card_goal_screen.dart';
+import '../past_days/past_days_screen.dart';
 import '../settings/settings_screen.dart';
 import '../timer/timer_screen.dart';
+import 'widgets/voice_input_sheet.dart';
 
 class DeckScreen extends ConsumerStatefulWidget {
   const DeckScreen({super.key});
@@ -21,12 +24,18 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
   bool _navigating = false;
   bool _justOneMode = false;
   int _justOneIndex = 0;
+  bool _isFreshStartMode = false;
+  int _archivedCardCount = 0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    Future.microtask(_onLoad);
+    Future.microtask(() async {
+      await _loadPreferences();
+      await _checkDailyRollover();
+      await _onLoad();
+    });
   }
 
   @override
@@ -41,6 +50,56 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
       // Reschedule notifications when app comes back to foreground
       // NotificationService.instance.rescheduleAll() is intentionally not
       // awaited here — fire and forget to avoid blocking the UI.
+
+      // Check for daily rollover
+      Future.microtask(() async {
+        await _checkDailyRollover();
+        if (mounted) await _onLoad();
+      });
+    }
+  }
+
+  Future<void> _loadPreferences() async {
+    try {
+      final prefs = SharedPreferencesAsync();
+      final isFreshStart = await prefs.getBool('isFreshStartMode') ?? false;
+      final archivedCount =
+          await ref.read(cardsProvider.notifier).getArchivedCardCount();
+      if (mounted) {
+        setState(() {
+          _isFreshStartMode = isFreshStart;
+          _archivedCardCount = archivedCount;
+        });
+      }
+    } catch (_) {
+      // Fail silently, defaults are fine
+    }
+  }
+
+  Future<void> _checkDailyRollover() async {
+    if (!_isFreshStartMode) return;
+
+    try {
+      final prefs = SharedPreferencesAsync();
+      final lastOpenDate = await prefs.getInt('lastOpenDate');
+      final now = DateTime.now();
+      final todayMidnight =
+          DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
+
+      if (lastOpenDate == null || lastOpenDate < todayMidnight) {
+        // New day detected - archive all active cards with yesterday's date
+        final yesterday = DateTime(now.year, now.month, now.day - 1);
+        final yesterdayTimestamp = yesterday.millisecondsSinceEpoch;
+
+        await ref
+            .read(cardsProvider.notifier)
+            .archiveAllActiveCards(yesterdayTimestamp);
+
+        // Update lastOpenDate to today
+        await prefs.setInt('lastOpenDate', todayMidnight);
+      }
+    } catch (_) {
+      // Fail silently - daily rollover is non-critical
     }
   }
 
@@ -48,6 +107,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
     try {
       await ref.read(cardsProvider.notifier).loadCards();
       await _checkArchivePrompts();
+      await _loadPreferences();
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -93,25 +153,26 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
     }
   }
 
-  Future<void> _openAddFlow() async {
-    final cards = ref.read(cardsProvider);
-    final defaultGoal = cards.isNotEmpty ? _mostRecentGoal(cards) : null;
-    await showModalBottomSheet<void>(
+  Future<void> _openVoiceInput() async {
+    final transcription = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => _TemplateBrowserSheet(defaultGoal: defaultGoal),
+      builder: (_) => const VoiceInputSheet(),
     );
-    if (mounted) await _onLoad();
-  }
 
-  String? _mostRecentGoal(List<CardModel> cards) {
-    final sorted = [...cards]
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return sorted.first.goalLabel;
+    if (transcription != null && transcription.isNotEmpty && mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => CreateCardGoalScreen(
+            prefilledGoal: transcription,
+          ),
+        ),
+      );
+    }
   }
 
   void _enterJustOneMode() {
@@ -124,6 +185,81 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
   }
 
   void _exitJustOneMode() => setState(() => _justOneMode = false);
+
+  Future<void> _openPastDays() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const PastDaysScreen()),
+    );
+    if (mounted) await _onLoad();
+  }
+
+  Widget _buildFreshStartActions() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.page,
+        vertical: AppSpacing.md,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _openVoiceInput,
+              icon: const Icon(Icons.mic_outlined, size: 20),
+              label: const Text('Voice planning'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textMuted,
+                side: const BorderSide(color: AppColors.surfaceHigh),
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.sm,
+                  horizontal: AppSpacing.md,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Semantics(
+            label: 'View past days',
+            button: true,
+            child: TextButton(
+              onPressed: _openPastDays,
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.textFaint,
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.xs,
+                  horizontal: AppSpacing.sm,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Past days'),
+                  if (_archivedCardCount > 0) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceHigh,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '$_archivedCardCount',
+                        style: AppTextStyles.badge.copyWith(fontSize: 11),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +275,13 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
               label: 'Add card',
               button: true,
               child: FloatingActionButton(
-                onPressed: _openAddFlow,
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CreateCardGoalScreen(),
+                    ),
+                  );
+                },
                 child: const Icon(Icons.add),
               ),
             ),
@@ -199,7 +341,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                     if (mounted) await _onLoad();
                   },
                   icon: const Icon(
-                    Icons.tune,
+                    Icons.settings_outlined,
                     color: AppColors.textFaint,
                     size: 20,
                   ),
@@ -250,6 +392,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                   },
                 ),
         ),
+        if (_isFreshStartMode) _buildFreshStartActions(),
       ],
     );
   }
@@ -384,7 +527,13 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
             button: true,
             label: 'Add a card',
             child: FilledButton.icon(
-              onPressed: _openAddFlow,
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const CreateCardGoalScreen(),
+                  ),
+                );
+              },
               icon: const Icon(Icons.add),
               label: const Text('Add a card'),
             ),
@@ -513,303 +662,3 @@ class _ArchivePromptSheet extends StatelessWidget {
   }
 }
 
-// ─── Template Browser Sheet ───────────────────────────────────────────────────
-
-class _TemplateBrowserSheet extends StatelessWidget {
-  const _TemplateBrowserSheet({this.defaultGoal});
-
-  final String? defaultGoal;
-
-  void _openAddSheet(
-    BuildContext context, {
-    String? prefilledAction,
-    String? prefilledGoal,
-  }) {
-    Navigator.of(context).pop(); // Close template browser
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => _AddCardSheet(
-        defaultGoal: prefilledGoal ?? defaultGoal,
-        prefilledAction: prefilledAction,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.75,
-      maxChildSize: 0.95,
-      builder: (_, scrollController) {
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.page,
-                AppSpacing.md,
-                AppSpacing.page,
-                0,
-              ),
-              child: Row(
-                children: [
-                  const Text('New card', style: AppTextStyles.sheetTitle),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => _openAddSheet(context),
-                    child: const Text('Start blank'),
-                  ),
-                ],
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.page,
-                vertical: AppSpacing.xs,
-              ),
-              child: Text(
-                'Or choose a template to start from:',
-                style: AppTextStyles.bodyMuted,
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                controller: scrollController,
-                padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                children: [
-                  for (final area in templateAreas) ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.page,
-                        AppSpacing.sm,
-                        AppSpacing.page,
-                        AppSpacing.xs,
-                      ),
-                      child: Text(
-                        area,
-                        style: AppTextStyles.label.copyWith(letterSpacing: 0.8),
-                      ),
-                    ),
-                    for (final t in starterTemplates.where(
-                      (t) => t.area == area,
-                    ))
-                      _TemplateRow(
-                        template: t,
-                        onTap: () => _openAddSheet(
-                          context,
-                          prefilledAction: t.actionLabel,
-                          prefilledGoal: t.goalLabel,
-                        ),
-                      ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _TemplateRow extends StatelessWidget {
-  const _TemplateRow({required this.template, required this.onTap});
-
-  final CardTemplate template;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.page,
-          vertical: 12,
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    template.actionLabel,
-                    style: AppTextStyles.body.copyWith(
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(template.goalLabel, style: AppTextStyles.cardGoal),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.textFaint,
-              size: 18,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Add Card Sheet ───────────────────────────────────────────────────────────
-
-class _AddCardSheet extends ConsumerStatefulWidget {
-  const _AddCardSheet({this.defaultGoal, this.prefilledAction});
-
-  final String? defaultGoal;
-  final String? prefilledAction;
-
-  @override
-  ConsumerState<_AddCardSheet> createState() => _AddCardSheetState();
-}
-
-class _AddCardSheetState extends ConsumerState<_AddCardSheet> {
-  final _goalController = TextEditingController();
-  final _actionController = TextEditingController();
-  final _actionFocus = FocusNode();
-  bool _saving = false;
-  double _durationMinutes = 2;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.defaultGoal != null) _goalController.text = widget.defaultGoal!;
-    if (widget.prefilledAction != null) {
-      _actionController.text = widget.prefilledAction!;
-    }
-  }
-
-  @override
-  void dispose() {
-    _goalController.dispose();
-    _actionController.dispose();
-    _actionFocus.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    final action = _actionController.text.trim();
-    if (action.isEmpty || _saving) return;
-    setState(() => _saving = true);
-    try {
-      final goal = _goalController.text.trim();
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final card = CardModel(
-        id: now.toString(),
-        goalLabel: goal.isEmpty ? null : goal,
-        actionLabel: action,
-        durationSeconds: (_durationMinutes * 60).round(),
-        sortOrder: 0,
-        createdAt: now,
-      );
-      await ref.read(cardsProvider.notifier).addCard(card);
-      if (mounted) Navigator.of(context).pop();
-    } catch (_) {
-      if (mounted) {
-        setState(() => _saving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not save card. Please try again.'),
-          ),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.page,
-        AppSpacing.md,
-        AppSpacing.page,
-        AppSpacing.md + bottomInset,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('New card', style: AppTextStyles.sheetTitle),
-          const SizedBox(height: AppSpacing.md),
-          TextField(
-            controller: _goalController,
-            style: const TextStyle(color: AppColors.textPrimary),
-            textInputAction: TextInputAction.next,
-            onSubmitted: (_) => _actionFocus.requestFocus(),
-            decoration: const InputDecoration(labelText: 'Goal (optional)'),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(
-            controller: _actionController,
-            focusNode: _actionFocus,
-            autofocus: widget.prefilledAction == null,
-            style: const TextStyle(color: AppColors.textPrimary),
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _save(),
-            decoration: const InputDecoration(
-              labelText: 'Action (required)',
-              hintText: 'e.g. Open the document',
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              const Text('Duration', style: AppTextStyles.label),
-              const Spacer(),
-              Text(
-                '${_durationMinutes.round()} min',
-                style: AppTextStyles.label.copyWith(
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          Slider(
-            value: _durationMinutes,
-            min: 1,
-            max: 10,
-            divisions: 9,
-            activeColor: AppColors.textPrimary,
-            inactiveColor: AppColors.surfaceHigh,
-            onChanged: (v) => setState(() => _durationMinutes = v),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          SizedBox(
-            width: double.infinity,
-            child: Semantics(
-              button: true,
-              label: 'Save card',
-              child: FilledButton(
-                onPressed: (_actionController.text.trim().isEmpty || _saving)
-                    ? null
-                    : _save,
-                child: _saving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.background,
-                        ),
-                      )
-                    : const Text('Save'),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

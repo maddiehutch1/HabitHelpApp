@@ -3,9 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../data/database.dart';
 import '../../data/models/card_model.dart';
+import '../../data/models/session_model.dart';
 import '../../routes.dart';
 import '../../services/notification_service.dart';
 import '../../theme.dart';
@@ -26,6 +29,9 @@ class _TimerScreenState extends State<TimerScreen>
   Timer? _ticker;
   bool _isRunning = true;
   bool _isComplete = false;
+  int _extraTimeSeconds = 0;
+  late final String _sessionId;
+  late final int _startedAt;
 
   late final AnimationController _pulseController;
   late final Animation<double> _pulseOpacity;
@@ -37,6 +43,8 @@ class _TimerScreenState extends State<TimerScreen>
   void initState() {
     super.initState();
     _secondsRemaining = widget.card.durationSeconds;
+    _sessionId = const Uuid().v4();
+    _startedAt = DateTime.now().millisecondsSinceEpoch;
 
     WakelockPlus.enable();
     WidgetsBinding.instance.addObserver(this);
@@ -119,15 +127,8 @@ class _TimerScreenState extends State<TimerScreen>
     await HapticFeedback.mediumImpact();
     _completionController.forward();
 
-    // Request notification permission and show explainer in parallel
-    // during the 2-second completion pause
-    await Future.wait([
-      Future<void>.delayed(const Duration(seconds: 2)),
-      _handlePostCompletion(),
-    ]);
-
-    if (!mounted) return;
-    _goToDeck();
+    // Show the choice UI instead of automatically going to deck
+    // Don't auto-navigate anymore
   }
 
   Future<void> _handlePostCompletion() async {
@@ -164,6 +165,46 @@ class _TimerScreenState extends State<TimerScreen>
     } catch (_) {}
   }
 
+  Future<void> _handleDone() async {
+    // Store session in database
+    await _storeSession();
+
+    // Request notification permission and show explainer in parallel
+    await _handlePostCompletion();
+
+    if (!mounted) return;
+    _goToDeck();
+  }
+
+  Future<void> _storeSession() async {
+    try {
+      final db = await getDatabase();
+      final session = SessionModel(
+        id: _sessionId,
+        cardId: widget.card.id,
+        startedAt: _startedAt,
+        completedAt: DateTime.now().millisecondsSinceEpoch,
+        baseDurationSeconds: widget.card.durationSeconds,
+        extraTimeSeconds: _extraTimeSeconds,
+      );
+      await db.insert('sessions', session.toMap());
+    } catch (e) {
+      // Silently fail if session storage fails
+    }
+  }
+
+  void _handleKeepGoing() {
+    setState(() {
+      _extraTimeSeconds += widget.card.durationSeconds;
+      _secondsRemaining = widget.card.durationSeconds;
+      _isComplete = false;
+      _isRunning = true;
+    });
+    _completionController.reset();
+    _pulseController.repeat(reverse: true);
+    _startTicker();
+  }
+
   void _goToDeck() {
     Navigator.of(
       context,
@@ -174,6 +215,12 @@ class _TimerScreenState extends State<TimerScreen>
     final m = (seconds ~/ 60).toString().padLeft(2, '0');
     final s = (seconds % 60).toString().padLeft(2, '0');
     return '$m:$s';
+  }
+
+  String formatExtraTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '$minutes:${secs.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -255,10 +302,42 @@ class _TimerScreenState extends State<TimerScreen>
   }
 
   Widget _buildCompletion() {
+    final completionMessage = _extraTimeSeconds > 0
+        ? '${widget.card.durationSeconds ~/ 60} minutes + ${formatExtraTime(_extraTimeSeconds)} extra'
+        : 'You hit your ${widget.card.durationSeconds ~/ 60} minutes.';
+
     return Center(
       child: FadeTransition(
         opacity: _completionOpacity,
-        child: const Text("That's it.", style: AppTextStyles.completion),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                completionMessage,
+                style: AppTextStyles.completion,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _handleDone,
+                  child: const Text('Done'),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: _handleKeepGoing,
+                  child: const Text('Keep going'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

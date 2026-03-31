@@ -5,6 +5,7 @@ final Logger appLog = Logger('App');
 final Logger cardRepoLog = Logger('CardRepository');
 final Logger scheduleRepoLog = Logger('ScheduleRepository');
 final Logger notificationLog = Logger('NotificationService');
+final Logger voiceLog = Logger('VoiceService');
 
 /// Call once in [main] before [runApp].
 ///
