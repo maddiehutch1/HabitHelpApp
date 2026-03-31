@@ -42,7 +42,9 @@ class CardRepository {
       orderBy: 'archivedDate DESC',
     );
     final cards = rows.map(CardModel.fromMap).toList();
-    cardRepoLog.fine('getArchivedByDate → ${cards.length} cards with archivedDate');
+    cardRepoLog.fine(
+      'getArchivedByDate → ${cards.length} cards with archivedDate',
+    );
     return cards;
   }
 
@@ -63,7 +65,9 @@ class CardRepository {
       where: 'id = ?',
       whereArgs: [id],
     );
-    cardRepoLog.info('moveToToday id=$id → archivedDate=null, sortOrder=$maxSort');
+    cardRepoLog.info(
+      'moveToToday id=$id → archivedDate=null, sortOrder=$maxSort',
+    );
   }
 
   Future<void> deleteCard(String id) async {
@@ -194,11 +198,11 @@ class CardRepository {
   /// Archives all active cards with the given archivedDate (for Fresh Start mode daily rollover)
   Future<void> archiveAllActiveCards(int archivedDate) async {
     final db = await getDatabase();
-    await db.update(
-      'cards',
-      {'archivedDate': archivedDate},
-      where: 'archivedDate IS NULL',
+    await db.update('cards', {
+      'archivedDate': archivedDate,
+    }, where: 'archivedDate IS NULL');
+    cardRepoLog.info(
+      'archiveAllActiveCards → all active cards archived with date=$archivedDate',
     );
-    cardRepoLog.info('archiveAllActiveCards → all active cards archived with date=$archivedDate');
   }
 }

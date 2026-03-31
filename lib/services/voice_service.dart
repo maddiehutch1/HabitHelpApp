@@ -81,7 +81,9 @@ class VoiceService {
         return false;
       }
 
-      voiceLog.info('Starting to listen (max duration: ${maxDuration.inSeconds}s)');
+      voiceLog.info(
+        'Starting to listen (max duration: ${maxDuration.inSeconds}s)',
+      );
 
       await _speech.listen(
         onResult: (result) {

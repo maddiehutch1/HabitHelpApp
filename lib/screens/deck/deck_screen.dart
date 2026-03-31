@@ -63,8 +63,9 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
     try {
       final prefs = SharedPreferencesAsync();
       final isFreshStart = await prefs.getBool('isFreshStartMode') ?? false;
-      final archivedCount =
-          await ref.read(cardsProvider.notifier).getArchivedCardCount();
+      final archivedCount = await ref
+          .read(cardsProvider.notifier)
+          .getArchivedCardCount();
       if (mounted) {
         setState(() {
           _isFreshStartMode = isFreshStart;
@@ -83,8 +84,11 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
       final prefs = SharedPreferencesAsync();
       final lastOpenDate = await prefs.getInt('lastOpenDate');
       final now = DateTime.now();
-      final todayMidnight =
-          DateTime(now.year, now.month, now.day).millisecondsSinceEpoch;
+      final todayMidnight = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).millisecondsSinceEpoch;
 
       if (lastOpenDate == null || lastOpenDate < todayMidnight) {
         // New day detected - archive all active cards with yesterday's date
@@ -167,10 +171,29 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
     if (transcription != null && transcription.isNotEmpty && mounted) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => CreateCardGoalScreen(
-            prefilledGoal: transcription,
-          ),
+          builder: (_) => CreateCardGoalScreen(prefilledGoal: transcription),
         ),
+      );
+    }
+  }
+
+  Future<void> _showAddMethodSheet() async {
+    final result = await showModalBottomSheet<_AddMethod>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const _AddMethodSheet(),
+    );
+
+    if (!mounted) return;
+
+    if (result == _AddMethod.voice) {
+      await _openVoiceInput();
+    } else if (result == _AddMethod.manual) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const CreateCardGoalScreen()),
       );
     }
   }
@@ -187,9 +210,9 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
   void _exitJustOneMode() => setState(() => _justOneMode = false);
 
   Future<void> _openPastDays() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const PastDaysScreen()),
-    );
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const PastDaysScreen()));
     if (mounted) await _onLoad();
   }
 
@@ -275,13 +298,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
               label: 'Add card',
               button: true,
               child: FloatingActionButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const CreateCardGoalScreen(),
-                    ),
-                  );
-                },
+                onPressed: _showAddMethodSheet,
                 child: const Icon(Icons.add),
               ),
             ),
@@ -527,13 +544,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
             button: true,
             label: 'Add a card',
             child: FilledButton.icon(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const CreateCardGoalScreen(),
-                  ),
-                );
-              },
+              onPressed: _showAddMethodSheet,
               icon: const Icon(Icons.add),
               label: const Text('Add a card'),
             ),
@@ -614,6 +625,60 @@ class _CardTile extends StatelessWidget {
   }
 }
 
+// ─── Add Method Sheet ─────────────────────────────────────────────────────────
+
+enum _AddMethod { voice, manual }
+
+class _AddMethodSheet extends StatelessWidget {
+  const _AddMethodSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final buttonStyle = OutlinedButton.styleFrom(
+      foregroundColor: AppColors.textMuted,
+      side: const BorderSide(color: AppColors.surfaceHigh),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.page,
+        AppSpacing.md,
+        AppSpacing.page,
+        AppSpacing.md,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Add a card', style: AppTextStyles.sheetTitle),
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).pop(_AddMethod.voice),
+              icon: const Icon(Icons.mic_outlined, size: 20),
+              label: const Text('Use voice'),
+              style: buttonStyle,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).pop(_AddMethod.manual),
+              icon: const Icon(Icons.edit_outlined, size: 20),
+              label: const Text('Type it'),
+              style: buttonStyle,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Archive Prompt Sheet ─────────────────────────────────────────────────────
 
 class _ArchivePromptSheet extends StatelessWidget {
@@ -661,4 +726,3 @@ class _ArchivePromptSheet extends StatelessWidget {
     );
   }
 }
-

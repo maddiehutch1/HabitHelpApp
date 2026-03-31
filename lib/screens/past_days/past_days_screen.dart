@@ -68,9 +68,9 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not move card.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Could not move card.')));
       }
     }
   }
@@ -88,10 +88,7 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Move to today?',
-              style: AppTextStyles.headline,
-            ),
+            const Text('Move to today?', style: AppTextStyles.headline),
             const SizedBox(height: AppSpacing.xs),
             Text(card.actionLabel, style: AppTextStyles.bodyMuted),
             const SizedBox(height: AppSpacing.lg),
@@ -129,8 +126,9 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
     for (final card in cards) {
       if (card.archivedDate == null) continue;
 
-      final archivedDateTime =
-          DateTime.fromMillisecondsSinceEpoch(card.archivedDate!);
+      final archivedDateTime = DateTime.fromMillisecondsSinceEpoch(
+        card.archivedDate!,
+      );
       final archivedDay = DateTime(
         archivedDateTime.year,
         archivedDateTime.month,
@@ -200,46 +198,46 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
                       ),
                     )
                   : _archivedCards.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppSpacing.page),
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.page),
+                        child: Text(
+                          'No past days yet. Cards will appear here each day when you enable Fresh Start mode.',
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMuted,
+                        ),
+                      ),
+                    )
+                  : ListView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: AppSpacing.xs,
+                      ),
+                      children: [
+                        for (final entry in groupedCards.entries) ...[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.sm,
+                              AppSpacing.sm,
+                              AppSpacing.sm,
+                              AppSpacing.xs,
+                            ),
                             child: Text(
-                              'No past days yet. Cards will appear here each day when you enable Fresh Start mode.',
-                              textAlign: TextAlign.center,
-                              style: AppTextStyles.bodyMuted,
+                              entry.key,
+                              style: AppTextStyles.label.copyWith(
+                                letterSpacing: 0.8,
+                              ),
                             ),
                           ),
-                        )
-                      : ListView(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.sm,
-                            vertical: AppSpacing.xs,
-                          ),
-                          children: [
-                            for (final entry in groupedCards.entries) ...[
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  AppSpacing.sm,
-                                  AppSpacing.sm,
-                                  AppSpacing.sm,
-                                  AppSpacing.xs,
-                                ),
-                                child: Text(
-                                  entry.key,
-                                  style: AppTextStyles.label.copyWith(
-                                    letterSpacing: 0.8,
-                                  ),
-                                ),
-                              ),
-                              for (final card in entry.value)
-                                _PastDayCardTile(
-                                  card: card,
-                                  onTap: () => _openTimer(card),
-                                  onLongPress: () => _showMoveToTodaySheet(card),
-                                ),
-                            ],
-                          ],
-                        ),
+                          for (final card in entry.value)
+                            _PastDayCardTile(
+                              card: card,
+                              onTap: () => _openTimer(card),
+                              onLongPress: () => _showMoveToTodaySheet(card),
+                            ),
+                        ],
+                      ],
+                    ),
             ),
           ],
         ),
@@ -267,7 +265,8 @@ class _PastDayCardTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Semantics(
         button: true,
-        label: '${card.actionLabel}. Tap to start timer, long press for options.',
+        label:
+            '${card.actionLabel}. Tap to start timer, long press for options.',
         child: InkWell(
           onTap: onTap,
           onLongPress: onLongPress,

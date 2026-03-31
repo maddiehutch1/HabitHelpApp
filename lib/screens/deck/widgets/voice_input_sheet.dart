@@ -23,7 +23,8 @@ class VoiceInputSheet extends StatefulWidget {
 class _VoiceInputSheetState extends State<VoiceInputSheet>
     with SingleTickerProviderStateMixin {
   final VoiceService _voiceService = VoiceService.instance;
-  final TextEditingController _transcriptionController = TextEditingController();
+  final TextEditingController _transcriptionController =
+      TextEditingController();
 
   bool _isRecording = false;
   bool _hasRecorded = false;
@@ -277,19 +278,14 @@ class _VoiceInputSheetState extends State<VoiceInputSheet>
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Your transcription',
-          style: AppTextStyles.sheetTitle,
-        ),
+        const Text('Your transcription', style: AppTextStyles.sheetTitle),
         const SizedBox(height: AppSpacing.md),
         TextField(
           controller: _transcriptionController,
           maxLines: 8,
           style: const TextStyle(color: AppColors.textPrimary),
           decoration: InputDecoration(
-            hintText: hasText
-                ? null
-                : 'Your transcription will appear here...',
+            hintText: hasText ? null : 'Your transcription will appear here...',
             border: const OutlineInputBorder(
               borderSide: BorderSide(color: AppColors.border),
             ),

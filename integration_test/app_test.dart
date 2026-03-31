@@ -70,7 +70,7 @@ void main() {
   });
 
   group('Deck — add card via FAB', () {
-    testWidgets('opens template browser when FAB is tapped on deck', (
+    testWidgets('opens add method sheet when FAB is tapped on deck', (
       tester,
     ) async {
       await _setOnboardingComplete();
@@ -80,8 +80,9 @@ void main() {
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
 
-      // Template browser sheet should appear
-      expect(find.textContaining('Movement'), findsOneWidget);
+      // Add method sheet should appear with both options
+      expect(find.text('Use voice'), findsOneWidget);
+      expect(find.text('Type it'), findsOneWidget);
     });
   });
 

@@ -102,9 +102,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             if (_loading)
               const Expanded(
                 child: Center(
-                  child: CircularProgressIndicator(
-                    color: AppColors.textMuted,
-                  ),
+                  child: CircularProgressIndicator(color: AppColors.textMuted),
                 ),
               )
             else
@@ -148,11 +146,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               value: _isFreshStartMode,
                               onChanged: _toggleFreshStartMode,
                               activeThumbColor: AppColors.textPrimary,
-                              activeTrackColor:
-                                  AppColors.textPrimary.withAlpha(102),
+                              activeTrackColor: AppColors.textPrimary.withAlpha(
+                                102,
+                              ),
                               inactiveThumbColor: AppColors.textMuted,
-                              inactiveTrackColor:
-                                  AppColors.surfaceHigh,
+                              inactiveTrackColor: AppColors.surfaceHigh,
                             ),
                           ),
                         ],
@@ -196,11 +194,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               value: _aiSuggestionsEnabled,
                               onChanged: _toggleAISuggestions,
                               activeThumbColor: AppColors.textPrimary,
-                              activeTrackColor:
-                                  AppColors.textPrimary.withAlpha(102),
+                              activeTrackColor: AppColors.textPrimary.withAlpha(
+                                102,
+                              ),
                               inactiveThumbColor: AppColors.textMuted,
-                              inactiveTrackColor:
-                                  AppColors.surfaceHigh,
+                              inactiveTrackColor: AppColors.surfaceHigh,
                             ),
                           ),
                         ],

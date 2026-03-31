@@ -190,7 +190,8 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                             }).toList(),
                           ),
                         ),
-                      if (_controller.text.trim().isNotEmpty && !_loadingSmaller)
+                      if (_controller.text.trim().isNotEmpty &&
+                          !_loadingSmaller)
                         Padding(
                           padding: const EdgeInsets.only(top: AppSpacing.xs),
                           child: TextButton(
@@ -231,7 +232,9 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                   button: true,
                   label: "Let's go",
                   child: FilledButton(
-                    onPressed: _controller.text.trim().isEmpty ? null : _advance,
+                    onPressed: _controller.text.trim().isEmpty
+                        ? null
+                        : _advance,
                     child: const Text("Let's go →"),
                   ),
                 ),
