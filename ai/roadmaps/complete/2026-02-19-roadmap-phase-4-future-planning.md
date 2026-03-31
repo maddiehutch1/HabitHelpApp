@@ -1,5 +1,6 @@
 # Roadmap — Phase 4: Future Planning
 *Created: February 19, 2026*
+*Archived: March 31, 2026 — **Superseded.** Development moved forward directly to Phases 5–7 based on real user feedback without waiting for the formal 4-week gate. Gate criteria no longer apply.*
 *Part of: [Project Plan](2026-02-19-high-level-project-plan.md)*
 *Detailed plan: [Phase 4 Plan](2026-02-19-phase-4-future-planning.md)*
 *Previous: [Roadmap — Phase 3](complete/2026-02-19-roadmap-phase-3-v1-features.md)*

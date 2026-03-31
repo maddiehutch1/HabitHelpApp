@@ -4,9 +4,14 @@ import '../../theme.dart';
 import 'create_card_action_screen.dart';
 
 class CreateCardGoalScreen extends StatefulWidget {
-  const CreateCardGoalScreen({super.key, this.prefilledGoal});
+  const CreateCardGoalScreen({super.key, this.prefilledGoal, this.onCardSaved});
 
   final String? prefilledGoal;
+
+  /// Optional callback invoked after a card is saved via "Save for later" in
+  /// the confirm screen. Used by [VoiceAISuggestionsScreen] to process a
+  /// multi-task queue without returning to the deck between each card.
+  final VoidCallback? onCardSaved;
 
   @override
   State<CreateCardGoalScreen> createState() => _CreateCardGoalScreenState();
@@ -33,7 +38,12 @@ class _CreateCardGoalScreenState extends State<CreateCardGoalScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => CreateCardActionScreen(goal: text)),
+      MaterialPageRoute(
+        builder: (_) => CreateCardActionScreen(
+          goal: text,
+          onCardSaved: widget.onCardSaved,
+        ),
+      ),
     );
   }
 

@@ -14,10 +14,17 @@ class CreateCardConfirmScreen extends ConsumerStatefulWidget {
     super.key,
     required this.goal,
     required this.action,
+    this.onCardSaved,
   });
 
   final String goal;
   final String action;
+
+  /// Optional callback invoked after "Save for later". When provided the screen
+  /// pops back to the route named '/voiceSuggestions' instead of replacing the
+  /// stack with [DeckScreen], allowing [VoiceAISuggestionsScreen] to process
+  /// the next task in a multi-card queue.
+  final VoidCallback? onCardSaved;
 
   @override
   ConsumerState<CreateCardConfirmScreen> createState() =>
@@ -78,9 +85,19 @@ class _CreateCardConfirmScreenState
       setState(() => _submitting = false);
       return;
     }
-    Navigator.of(
-      context,
-    ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
+    if (widget.onCardSaved != null) {
+      // Pop back to VoiceAISuggestionsScreen (named '/voiceSuggestions') and
+      // let it process the next task in the queue.
+      Navigator.of(context).popUntil(
+        (route) =>
+            route.settings.name == '/voiceSuggestions' || route.isFirst,
+      );
+      widget.onCardSaved!();
+    } else {
+      Navigator.of(
+        context,
+      ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
+    }
   }
 
   @override

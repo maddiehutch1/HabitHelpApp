@@ -114,6 +114,48 @@ This is meant to be a CONCISE list of changes to track as we develop this projec
 - Phase 5 (v2 Planning) renamed to Phase 4 (Future Planning); monetization added as hypothesis H1
 - High-level project plan and `context.md` updated to reflect new phase structure
 
+## Phase 7 — Voice AI Suggestions (code complete)
+*Mar 31, 2026 · Plan: [ai/roadmaps/2026-03-31-phase-7-voice-ai-suggestions.md](roadmaps/2026-03-31-phase-7-voice-ai-suggestions.md)*
+
+- `lib/services/ai_service.dart` — added `suggestTasksFromTranscription(String transcription)`: calls OpenAI `gpt-4o-mini`, extracts up to 3 task titles from a voice note, 8 s timeout, returns empty list on any error/no-consent
+- `lib/screens/create_card/voice_ai_suggestions_screen.dart` (new) — full screen; shows 1–3 checkable, inline-editable suggestion tiles; [Add selected] + "Add manually instead" fallback; `_processNextTask()` drives multi-card queue via `onCardSaved` callback
+- `lib/screens/create_card/create_card_goal_screen.dart` — added optional `onCardSaved: VoidCallback?`; threaded through to `CreateCardActionScreen`
+- `lib/screens/create_card/create_card_action_screen.dart` — added optional `onCardSaved`; threaded through to `CreateCardConfirmScreen`
+- `lib/screens/create_card/create_card_confirm_screen.dart` — added optional `onCardSaved`; `_saveLater()` uses `popUntil('/voiceSuggestions')` + calls callback when queue is active, preserving existing `pushAndRemoveUntil(DeckScreen)` for the standard path
+- `lib/screens/deck/deck_screen.dart` — `_openVoiceInput()` now checks AI consent, shows `_VoiceProcessingDialog` while parsing, routes to `VoiceAISuggestionsScreen` (route name `/voiceSuggestions`) on success, falls back to `CreateCardGoalScreen(prefilledGoal:)` on empty result or no consent; added `_VoiceProcessingDialog` widget
+- `integration_test/app_test.dart` — added "Voice AI suggestions — regression" group: FAB still shows voice/type options; "Type it" still reaches goal screen
+- `flutter analyze` — no issues
+
+---
+
+## Phase 5 — Daily Refresh (code complete, tested)
+*Mar 28–31, 2026 · Plan: [ai/roadmaps/2026-03-28-phase-5-daily-refresh.md](roadmaps/2026-03-28-phase-5-daily-refresh.md)*
+
+- `lib/screens/settings/settings_screen.dart` (new) — Fresh Start mode toggle; gear icon in deck header navigates here
+- `lib/screens/past_days/past_days_screen.dart` (new) — archived cards grouped by date ("Yesterday" / `Mar 26`); long-press → "Move to today" restores card to active deck
+- `lib/services/voice_service.dart` (new) — `startListening()` / `stopListening()` wrapper over `speech_to_text`; handles microphone permission request
+- `lib/screens/deck/widgets/voice_input_sheet.dart` (new) — 30-second recording bottom sheet; live transcription; [Discard] / [Create cards from this]
+- `lib/screens/timer/timer_screen.dart` — completion shows [Done] / [Keep going]; `_extraTimeSeconds` tracked; `_storeSession()` writes to `sessions` table
+- `lib/data/database.dart` — schema v4: `archivedDate INTEGER` added to `cards`; `sessions` table created; `onUpgrade` handles v1–v4
+- `lib/data/models/session_model.dart` (new) — `SessionModel` with `toMap` / `fromMap`
+- `lib/screens/deck/deck_screen.dart` — `WidgetsBindingObserver` + `_checkDailyRollover()` archives active cards when date changes (Fresh Start mode only); `lastOpenDate` pref maintained
+- `pubspec.yaml` — added `speech_to_text: ^7.0.0`, `intl: ^0.20.1`; microphone permissions added to `Info.plist` + `AndroidManifest.xml`
+
+## Phase 6 — Unified Tiny Start Flow with AI (code complete, tested)
+*Mar 28–31, 2026 · Plan: [ai/roadmaps/2026-03-28-phase-6-tiny-start-unified.md](roadmaps/2026-03-28-phase-6-tiny-start-unified.md)*
+
+- `lib/screens/onboarding/` → renamed to `lib/screens/create_card/`; classes renamed `CreateCardGoalScreen`, `CreateCardActionScreen`, `CreateCardConfirmScreen`
+- Language updated across all three screens (goal: "What feels big and difficult right now?"; action: "What's one tiny step you could take first?"; confirm: "Ready for your tiny start?")
+- `lib/screens/deck/deck_screen.dart` — + FAB opens `_AddMethodSheet` (voice / type it); template browser + add sheets removed; `_openVoiceInput()` routes transcription to `CreateCardGoalScreen(prefilledGoal:)`; `CreateCardGoalScreen` accepts optional `prefilledGoal`
+- `lib/services/ai_service.dart` (new) — OpenAI `gpt-4o-mini` integration; `generateFirstSteps()`, `makeSmaller()`, `requestConsent()` (first-time dialog + `aiSuggestionsEnabled` pref)
+- `lib/screens/create_card/create_card_action_screen.dart` — "I'm stuck – show ideas" button (2–3 AI chips); "Make this smaller" button (1 smaller chip); both respect consent gate
+- `lib/screens/settings/settings_screen.dart` — AI Suggestions toggle added
+- `lib/data/templates.dart` — deleted (no longer referenced)
+- `test/unit/templates_test.dart` — deleted (tested deleted file)
+- `pubspec.yaml` — added `http: ^1.2.0`; `.env.json` stores `OPENAI_API_KEY` (gitignored)
+
+---
+
 ## Extra — App Icon (not tied to a roadmap phase)
 *Feb 23, 2026*
 

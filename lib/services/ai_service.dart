@@ -131,6 +131,75 @@ Respond with ONLY a JSON array of strings. Example: ["Open the document", "Set a
     return suggestions.take(3).toList();
   }
 
+  /// Extract up to 3 actionable task titles from a voice transcription.
+  ///
+  /// Returns an empty list on API errors, timeouts (>8 s), empty/no-key input,
+  /// or when the transcription contains no clear tasks. Callers should fall
+  /// through to the manual `CreateCardGoalScreen` path on an empty result.
+  static Future<List<String>> suggestTasksFromTranscription(
+    String transcription,
+  ) async {
+    if (_apiKey.isEmpty || transcription.trim().isEmpty) return [];
+
+    try {
+      final response = await http
+          .post(
+            Uri.parse(_baseUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $_apiKey',
+            },
+            body: jsonEncode({
+              'model': 'gpt-4o-mini',
+              'messages': [
+                {
+                  'role': 'system',
+                  'content':
+                      'You extract short, actionable task titles from voice notes. '
+                      'Always respond with a raw JSON array of strings — no markdown, no code fences.',
+                },
+                {
+                  'role': 'user',
+                  'content':
+                      'Extract up to 3 distinct tasks from this voice note. '
+                      'Return ONLY a JSON array of short, actionable task titles '
+                      '(under 10 words each). If fewer than 3 tasks are present, '
+                      'return only what is there. Do not invent tasks. If no clear '
+                      'tasks are found, return an empty array.\n\n'
+                      'Voice note: "$transcription"',
+                },
+              ],
+              'max_tokens': 120,
+              'temperature': 0.3,
+            }),
+          )
+          .timeout(const Duration(seconds: 8));
+
+      if (response.statusCode != 200) return [];
+
+      final data = jsonDecode(response.body);
+      final raw =
+          (data['choices'][0]['message']['content'] as String).trim();
+
+      final cleaned = raw
+          .replaceAll(RegExp(r'^```[a-z]*\s*', multiLine: true), '')
+          .replaceAll(RegExp(r'\s*```$', multiLine: true), '')
+          .trim();
+
+      final parsed = jsonDecode(cleaned);
+      if (parsed is! List) return [];
+
+      return parsed
+          .cast<String>()
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .take(3)
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
   /// Break down an action into a smaller, more concrete step.
   ///
   /// Example: "Clean my kitchen" might return "Put one dish in the dishwasher"

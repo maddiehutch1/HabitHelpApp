@@ -5,9 +5,14 @@ import '../../theme.dart';
 import 'create_card_confirm_screen.dart';
 
 class CreateCardActionScreen extends StatefulWidget {
-  const CreateCardActionScreen({super.key, required this.goal});
+  const CreateCardActionScreen({
+    super.key,
+    required this.goal,
+    this.onCardSaved,
+  });
 
   final String goal;
+  final VoidCallback? onCardSaved;
 
   @override
   State<CreateCardActionScreen> createState() => _CreateCardActionScreenState();
@@ -31,8 +36,11 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
     if (text.isEmpty) return;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            CreateCardConfirmScreen(goal: widget.goal, action: text),
+        builder: (_) => CreateCardConfirmScreen(
+          goal: widget.goal,
+          action: text,
+          onCardSaved: widget.onCardSaved,
+        ),
       ),
     );
   }

@@ -4,9 +4,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/models/card_model.dart';
 import '../../providers/cards_provider.dart';
+import '../../services/ai_service.dart';
 import '../../routes.dart';
 import '../../theme.dart';
 import '../create_card/create_card_goal_screen.dart';
+import '../create_card/voice_ai_suggestions_screen.dart';
 import '../past_days/past_days_screen.dart';
 import '../settings/settings_screen.dart';
 import '../timer/timer_screen.dart';
@@ -168,13 +170,50 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
       builder: (_) => const VoiceInputSheet(),
     );
 
-    if (transcription != null && transcription.isNotEmpty && mounted) {
+    if (transcription == null || transcription.isEmpty || !mounted) return;
+
+    // Check consent — if the user has not enabled AI suggestions, skip parsing
+    // and fall through to the manual goal screen directly.
+    final hasConsent = await AIService.hasConsent();
+    if (!mounted) return;
+
+    List<String> suggestions = [];
+    if (hasConsent) {
+      // Show a brief loading indicator while the AI parses the transcription.
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black54,
+        builder: (_) => const _VoiceProcessingDialog(),
+      );
+
+      suggestions =
+          await AIService.suggestTasksFromTranscription(transcription);
+
+      if (mounted) Navigator.of(context).pop(); // Dismiss loading dialog
+    }
+
+    if (!mounted) return;
+
+    if (suggestions.isEmpty) {
+      // Fallback: go straight to CreateCardGoalScreen with raw transcription.
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => CreateCardGoalScreen(prefilledGoal: transcription),
         ),
       );
+      return;
     }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: '/voiceSuggestions'),
+        builder: (_) => VoiceAISuggestionsScreen(
+          suggestions: suggestions,
+          transcription: transcription,
+        ),
+      ),
+    );
   }
 
   Future<void> _showAddMethodSheet() async {
@@ -634,6 +673,7 @@ class _AddMethodSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
     final buttonStyle = OutlinedButton.styleFrom(
       foregroundColor: AppColors.textMuted,
       side: const BorderSide(color: AppColors.surfaceHigh),
@@ -641,11 +681,11 @@ class _AddMethodSheet extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.page,
         AppSpacing.md,
         AppSpacing.page,
-        AppSpacing.md,
+        AppSpacing.md + bottomInset,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -674,6 +714,28 @@ class _AddMethodSheet extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Voice Processing Dialog ──────────────────────────────────────────────────
+
+/// Shown while [AIService.suggestTasksFromTranscription] is running.
+/// Dismissed by the caller once the async call completes.
+class _VoiceProcessingDialog extends StatelessWidget {
+  const _VoiceProcessingDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: AppColors.textPrimary,
+        ),
       ),
     );
   }

@@ -2,7 +2,7 @@
 *Created: March 28, 2026*
 *Part of: Micro-Deck v2 Core UX Refinement*
 *Previous: [Phase 5 — Daily Refresh](2026-03-28-phase-5-daily-refresh.md)*
-*Status: Planning — ready for implementation*
+*Status: ✅ Complete — Mar 31, 2026*
 
 > **Goal:** Replace fragmented card creation flows with a single, momentum-building "Tiny Start" experience. Add AI-powered suggestions to help users when stuck.
 
@@ -48,8 +48,9 @@
 - Voice input flow (now prefills goal screen instead of separate flow)
 
 **New Entry Point:**
-- Tap + button on deck → goes directly to `CreateCardGoalScreen`
-- Optional: Hold + button → shows voice input first, then jumps to goal screen with prefilled text
+- Tap + button on deck → minimal voice/type sheet (`_showAddMethodSheet`)
+  - "Type it" → `CreateCardGoalScreen`
+  - "Use voice" → records → `CreateCardGoalScreen(prefilledGoal: transcription)`
 
 ---
 
@@ -785,68 +786,6 @@ lib/data/templates.dart                  # No longer needed
 
 ---
 
-## Testing Plan
-
-### Phase 6.1 Testing (Unified Flow, No AI)
-
-**First-Time User:**
-- [ ] Welcome screen → "Let's begin" → goal screen shows
-- [ ] Goal screen: language matches design spec
-- [ ] Action screen: language matches design spec
-- [ ] Confirm screen: language matches design spec
-- [ ] Timer starts correctly with 2-minute countdown
-- [ ] Completion shows "Done" and "Keep going" options
-- [ ] Card saved to database after completion
-
-**Returning User:**
-- [ ] Tap + button on deck → goal screen shows (not template browser)
-- [ ] Can create card through full flow
-- [ ] Voice input button (Fresh Start mode) → records → prefills goal screen
-- [ ] Goal screen accepts prefilled text
-- [ ] Can edit prefilled text before advancing
-
-**Regression:**
-- [ ] Fresh Start mode still works (daily rollover, Past Days)
-- [ ] Timer "Keep going" still works
-- [ ] Settings screen still accessible
-- [ ] No template-related code remains
-
-### Phase 6.2 Testing (AI Suggestions)
-
-**AI Consent:**
-- [ ] First tap on "I'm stuck" → shows consent dialog
-- [ ] "Don't allow" → button becomes disabled, tooltip shows
-- [ ] "Allow" → API call fires, suggestions appear
-- [ ] Consent saved (doesn't ask again)
-- [ ] Settings toggle reflects consent state
-
-**"I'm stuck – show ideas":**
-- [ ] Button appears on action screen
-- [ ] Tap → loading indicator shows
-- [ ] 2-3 suggestions appear as chips
-- [ ] Tap chip → fills text input
-- [ ] Suggestions disappear after selection
-- [ ] Error handling if API fails
-
-**"Make this smaller":**
-- [ ] Button only appears after typing in action field
-- [ ] Tap → loading indicator shows
-- [ ] Single suggestion appears as chip
-- [ ] Tap chip → replaces text input
-- [ ] Error handling if API fails
-
-**API Key:**
-- [ ] Build with `--dart-define` includes key correctly
-- [ ] API calls succeed with valid key
-- [ ] Graceful error if key missing/invalid
-
-**Privacy:**
-- [ ] Settings shows AI toggle
-- [ ] Disabling toggle → AI buttons become disabled
-- [ ] Re-enabling → AI buttons work again
-
----
-
 ## Cost & Rate Limiting
 
 **OpenAI API Costs (gpt-4o-mini):**
@@ -946,82 +885,6 @@ lib/data/templates.dart                  # No longer needed
 **Business:**
 - Total monthly OpenAI API cost
 - Cost per active user per month
-
----
-
-## Implementation Sequence
-
-### Sprint 1: Phase 6.1 — Unified Flow (No AI)
-**Est. 2-3 days**
-
-**Day 1:**
-- [ ] Rename onboarding screens to create_card screens
-- [ ] Update all imports and navigation
-- [ ] Update language in all three screens (goal, action, confirm)
-
-**Day 2:**
-- [ ] Remove template browser, add sheets, method choice from deck_screen.dart
-- [ ] Update + button to navigate directly to goal screen
-- [ ] Update voice input to prefill goal screen
-- [ ] Update welcome screen navigation
-
-**Day 3:**
-- [ ] Delete templates.dart and all references
-- [ ] Test full flow (first-time and returning users)
-- [ ] Test voice input prefill
-- [ ] Regression testing
-
-### Sprint 2: Phase 6.2 — AI Suggestions
-**Est. 3-4 days**
-
-**Day 1:**
-- [ ] Create ai_service.dart with OpenAI integration
-- [ ] Add consent dialog logic
-- [ ] Test API calls with dummy data
-
-**Day 2:**
-- [ ] Add "I'm stuck – show ideas" button to action screen
-- [ ] Implement suggestion loading/display
-- [ ] Add error handling
-
-**Day 3:**
-- [ ] Add "Make this smaller" button to action screen
-- [ ] Implement smaller suggestion loading/display
-- [ ] Test both AI features end-to-end
-
-**Day 4:**
-- [ ] Add AI suggestions toggle to settings screen
-- [ ] Test consent flow and settings toggle
-- [ ] Privacy policy update
-- [ ] Final testing and polish
-
----
-
-## Definition of Done
-
-### Phase 6.1 Complete When:
-- [ ] All onboarding screens renamed to create_card
-- [ ] Language updated to match design spec exactly
-- [ ] + button navigates directly to goal screen (no template browser)
-- [ ] Voice input prefills goal screen (not action screen)
-- [ ] Template browser and add sheets deleted
-- [ ] templates.dart deleted
-- [ ] First-time onboarding works identically
-- [ ] Returning user card creation works with new flow
-- [ ] No regressions in existing features (timer, Fresh Start, etc.)
-
-### Phase 6.2 Complete When:
-- [ ] ai_service.dart implemented and tested
-- [ ] "I'm stuck – show ideas" button works on action screen
-- [ ] "Make this smaller" button works on action screen
-- [ ] Consent dialog shown on first AI button tap
-- [ ] Settings has AI suggestions toggle
-- [ ] Disabling AI suggestions disables buttons
-- [ ] API calls succeed with valid key
-- [ ] Error handling graceful for API failures
-- [ ] Privacy policy updated with AI disclosure
-- [ ] Cost monitoring set up via OpenAI dashboard
-- [ ] All manual tests pass on real device
 
 ---
 

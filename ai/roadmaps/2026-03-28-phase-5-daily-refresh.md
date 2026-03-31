@@ -2,7 +2,7 @@
 *Created: March 28, 2026*
 *Part of: Micro-Deck v2 Feature Expansion*
 *Previous: [Phase 4 — Future Planning](2026-02-19-phase-4-future-planning.md)*
-*Status: Planning — ready for implementation*
+*Status: ✅ Complete — Mar 31, 2026*
 
 > **Avoid over-engineering, cruft, and legacy-compatibility features.**
 > This is a feature addition to an existing clean codebase. No backwards-compatibility hacks. No unused abstractions. No premature optimization. Keep it simple, keep it clean, delete fearlessly.
@@ -511,62 +511,6 @@ If user toggles Fresh Start OFF and wants to "restore" all archived cards:
 
 ---
 
-## Testing Plan
-
-### Manual Testing Checklist
-
-**Fresh Start Mode Toggle:**
-- [ ] Default is OFF on first install
-- [ ] Toggling ON shows voice button and "Past days" link
-- [ ] Toggling OFF hides voice button and "Past days" link
-- [ ] Toggling OFF does not delete archived cards (they remain in DB)
-
-**Daily Rollover:**
-- [ ] Open app on Day 1, create 3 cards, close app
-- [ ] Change device date to Day 2, open app
-- [ ] All 3 cards moved to Past Days, main deck is empty
-- [ ] Create 1 new card on Day 2
-- [ ] Change date to Day 3, open app
-- [ ] Day 2 card moved to Past Days, Day 1 cards remain in Past Days (grouped separately)
-
-**Voice Input:**
-- [ ] Microphone permission requested on first use only
-- [ ] Recording starts, countdown shows, stops at 30s automatically
-- [ ] User can stop early with [Stop] button
-- [ ] Transcription appears in editable text box
-- [ ] [Discard] dismisses sheet, no card created
-- [ ] [Create cards from this] allows manual card creation from text
-
-**Timer Keep Going:**
-- [ ] Timer completes 2:00, shows [Done] [Keep going]
-- [ ] Tapping [Done] returns to deck (current behavior)
-- [ ] Tapping [Keep going] restarts timer at 2:00
-- [ ] Can tap [Keep going] multiple times
-- [ ] Final completion shows "2 minutes + [extra time]"
-- [ ] Session stored in database with correct extraTimeSeconds
-
-**Past Days Screen:**
-- [ ] Shows cards grouped by date
-- [ ] "Yesterday" shows for previous day
-- [ ] Older dates show as "Mar 26", "Mar 25", etc.
-- [ ] Tapping card opens timer (works normally)
-- [ ] Long press → "Move to today" removes from Past Days, adds to main deck
-- [ ] Empty state shows when no archived cards
-
-**Regression Testing:**
-- [ ] Persistent deck mode (Fresh Start OFF) works identically to pre-Phase-5 behavior
-- [ ] All existing features unaffected: timer, onboarding, card creation, persistence
-
-### Edge Cases
-
-- [ ] User opens app after 7 days — cards archived with original dates (not compounded)
-- [ ] User creates card, toggles Fresh Start ON, same day — card remains active
-- [ ] User creates card, date rolls over, toggles Fresh Start ON — card does NOT auto-archive (only new rollovers trigger it)
-- [ ] Microphone permission denied — clear error message, [Open Settings] works
-- [ ] Voice transcription fails (network issue, etc.) — graceful error, allow retry
-
----
-
 ## Open Questions
 
 1. **Voice transcription accuracy:** Does local device transcription work well enough for ADHD users (often fast, scattered speech)? May need fallback to typing.
@@ -602,19 +546,3 @@ If user toggles Fresh Start OFF and wants to "restore" all archived cards:
 ## Roadmap
 
 → [Roadmap — Phase 5: Daily Refresh](2026-03-28-roadmap-phase-5-daily-refresh.md)
-
----
-
-## Definition of Done
-
-- [ ] Settings screen with Fresh Start toggle implemented and tested
-- [ ] Daily rollover logic works correctly (cards archived at midnight)
-- [ ] Past Days screen shows archived cards grouped by date
-- [ ] Voice input with local transcription works on iOS and Android
-- [ ] Manual card creation from voice transcription works
-- [ ] Timer "Keep going" enhancement implemented and tested
-- [ ] Database schema v4 migration complete and tested
-- [ ] No regressions to existing persistent deck behavior
-- [ ] All manual testing checklist items pass on real device
-- [ ] Code follows existing architecture patterns (no cruft, no over-engineering)
-- [ ] Documentation updated (architecture.md, context.md)

@@ -139,4 +139,45 @@ void main() {
       }
     });
   });
+
+  // ── Phase 7 — Voice AI Suggestions ──────────────────────────────────────────
+  //
+  // Full end-to-end testing of the voice → AI suggestions flow requires a real
+  // device with a working microphone and a valid OPENAI_API_KEY at runtime.
+  // The tests below cover the reachable regression paths (no actual recording).
+
+  group('Voice AI suggestions — regression', () {
+    testWidgets('FAB still shows voice and type options after Phase 7', (
+      tester,
+    ) async {
+      await _setOnboardingComplete();
+      app.main();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+
+      // Add method sheet must still offer both paths
+      expect(find.text('Use voice'), findsOneWidget);
+      expect(find.text('Type it'), findsOneWidget);
+    });
+
+    testWidgets('"Type it" still navigates to goal screen', (tester) async {
+      await _setOnboardingComplete();
+      app.main();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Type it'));
+      await tester.pumpAndSettle();
+
+      // Goal screen should show
+      expect(
+        find.textContaining('big and difficult'),
+        findsOneWidget,
+      );
+    });
+  });
 }
