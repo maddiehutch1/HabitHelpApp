@@ -60,3 +60,67 @@ Phases 0–7 are complete. Phase roadmaps are archived in `ai/roadmaps/complete/
 - Apple Watch, widgets, Siri integration
 - Cloud sync, backend, user accounts, social features
 - App Store / Play Store submission (deferred)
+
+
+# MicroDeck — Cursor AI Behavioral Guidelines
+
+## What This Project Is
+MicroDeck is a minimalist Flutter habit initiation app. Core philosophy: one card, two minutes, no judgment.
+Built for people with ADHD, executive dysfunction, or digital burnout.
+
+Always read `aiDocs/context.md` first to understand the current project state. For full product requirements see `aiDocs/prd.md`. For architecture decisions see `aiDocs/architecture.md`. For what has changed see `ai/changelog.md`.
+
+---
+
+## Hard Constraints — Never Violate Without Asking
+
+- **No network requests** except OpenAI API calls via `lib/services/ai_service.dart` — and only when the user has granted consent (`aiSuggestionsEnabled` pref). No http, no dio, no firebase anywhere else.
+- **No user accounts** — no auth, no login, no registration.
+- **No analytics or crash reporting SDKs** that send data off-device.
+- **No gamification** — no streaks, points, badges, or leaderboards. Ever.
+- **No Riverpod codegen** — use `NotifierProvider` directly. Do not add `build_runner` or use `@riverpod` annotations.
+- **Prefer `SharedPreferencesAsync`** over the legacy `SharedPreferences.getInstance()` for new code.
+- **Store `DateTime` as `int`** (millisecondsSinceEpoch) in SQLite. Never as String or native DateTime.
+- **Store `bool` as `int`** (0 or 1) in SQLite. Never as native bool.
+- **WakelockPlus**: `enable()` in timer `initState`, `disable()` in `dispose`. Never globally.
+- **Back gesture blocked during active timer** — use `PopScope(canPop: false)` while running. Allow pop only when paused or completed.
+- **Timer pauses on background** — listen to `AppLifecycleState` in `TimerScreen`; call `_pause()` on `AppLifecycleState.paused`.
+
+---
+
+## Code Style
+
+Refer to aiDocs/coding-style.md for coding style.
+
+---
+
+## Architecture
+
+- **State management:** `flutter_riverpod` — `ConsumerWidget` for read-only, `ConsumerStatefulWidget` when local state is needed.
+- **Local storage:** `sqflite` via `lib/data/database.dart` singleton. Migrations in `onUpgrade`.
+- **Folder layout:**
+  - `lib/screens/` — one subfolder per screen group
+  - `lib/data/models/` — data models with `toMap`/`fromMap`
+  - `lib/data/repositories/` — all DB access; never call sqflite from screens directly
+  - `lib/services/` — `app_logger.dart`, `ai_service.dart`, `notification_service.dart`, `voice_service.dart`
+  - `lib/providers/` — Riverpod providers and notifiers
+- **AI calls:** always check `aiSuggestionsEnabled` pref and call `requestConsent()` before the first call. All AI logic lives in `lib/services/ai_service.dart`.
+
+---
+
+## Design Principles (decision filters from PRD)
+
+1. Does this help the user **start** something? If no, cut it.
+2. Does this add **cognitive load**? If yes, simplify or cut it.
+3. Could this make a user feel **shame**? If yes, rewrite the copy or remove the mechanic.
+4. Does this require a **network connection** beyond AI suggestions? If yes, find a local-only solution or cut it.
+5. Does this make the **timer more reliable**? Prioritize above feature additions.
+
+---
+
+## Development Process
+
+- New plan docs go in `ai/roadmaps/` with a date prefix (e.g. `2026-04-01-phase-8-foo.md`). Plans and roadmaps come in pairs. Both must reference each other.
+- When a phase is complete: check off tasks in the roadmap, move both files to `ai/roadmaps/complete/`, update `ai/changelog.md`.
+- Keep `aiDocs/context.md` current — update it whenever the project state changes.
+- Keep documents as living artifacts. Stale docs are worse than no docs.
