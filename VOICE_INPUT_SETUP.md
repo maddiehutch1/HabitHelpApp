@@ -177,7 +177,7 @@
 ## Next Steps
 
 After successful testing:
-1. Update `ai/changelog.md` with voice input feature
+1. Update `aiDocs/changelog.md` with voice input feature
 2. Mark tasks complete in Phase 5.1 roadmap
 3. Consider user feedback for Phase 5.2 AI integration
 4. Test on multiple devices (iOS and Android)
