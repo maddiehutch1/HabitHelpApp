@@ -5,6 +5,9 @@
 # claude.md
 # CLAUDE.md
 # .cursorrules
+# rubric_for_final_and_analysis/ #uncomment for final commits
+
+rubric_for_final_and_analysis/rubric_self_assessment.md
 
 # ─── Environment & Secrets ────────────────────────────────────────────────────
 .env
