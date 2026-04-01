@@ -5,13 +5,14 @@
 # claude.md
 # CLAUDE.md
 # .cursorrules
+# AGENT.md
 # rubric_for_final_and_analysis/ #uncomment for final commits
 
 rubric_for_final_and_analysis/rubric_self_assessment.md
 
 # ─── Environment & Secrets ────────────────────────────────────────────────────
 .env
-.env.*
+.env.json
 .testEnvVars
 
 # ─── Node (not used in this project, ignored defensively) ─────────────────────

@@ -1,6 +1,7 @@
-# CLAUDE rules
+# Antigravity Agent rules
 
 Read aiDocs/context.md for project context.
 Follow coding style in aiDocs/coding-style.md
 Ask for opinion before complex work.
 Be concise.
+
