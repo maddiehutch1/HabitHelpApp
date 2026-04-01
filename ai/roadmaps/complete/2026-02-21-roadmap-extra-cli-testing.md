@@ -57,8 +57,8 @@ Named loggers per feature area so CLI/agent output explains *why* things fail.
 
 - [x] `TEST_README.md` — AI agent guide: commands, test structure, in-memory DB setup, JSON output parsing, troubleshooting table
 - [x] `aiDocs/cliTestPlan.md` — feature-to-test matrix (F1–F9), test matrix with commands, gap analysis (F4/F7/F8 not yet covered), quickstart, emulator setup, state reset strategy, CI notes
-- [x] `ai/changelog.md` updated with "Extra — CLI Test Harnesses" and "Extra — Structured Logging" entries
-- [x] `context.md` updated to reference CLI testing infrastructure
+- [x] `aiDocs/changelog.md` updated with "Extra — CLI Test Harnesses" and "Extra — Structured Logging" entries
+- [x] `aiDocs/context.md` updated to reference CLI testing infrastructure
 
 ---
 

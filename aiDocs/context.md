@@ -19,7 +19,7 @@ Core philosophy: **one card, two minutes, no judgment.**
 | MVP | `aiDocs/mvp.md` | Demo scope — core loop definition of done |
 | Architecture | `aiDocs/architecture.md` | Tech stack, verified packages, data models, folder structure, hard constraints |
 | Market Research | `ai/guides/habit-help-market-research.md` | Competitive landscape, risks, positioning |
-| Changelog | `ai/changelog.md` | Changelog with brief notes about each change to the codebase |
+| Changelog | `aiDocs/changelog.md` | Changelog with brief notes about each change to the codebase |
 | CLI Test Plan | `aiDocs/cliTestPlan.md` | Feature-to-test matrix, CLI commands, gap analysis, emulator setup, state reset strategy |
 
 ---
@@ -41,7 +41,7 @@ Core philosophy: **one card, two minutes, no judgment.**
 ## Behavior
 
 - Whenever creating plan docs and roadmap docs, always save them in ai/roadmaps. Prefix the name with the date. Add a note that we need to avoid over-engineering, cruft, and legacy-compatibility features in this clean code project. Make sure they reference each other.
-- Whenever finishing with implementing a plan / roadmap doc pair, make sure the roadmap is up to date (tasks checked off, etc). Then save the docs to ai/roadmaps/complete. Then update ai/changelog.md accordingly.
+- Whenever finishing with implementing a plan / roadmap doc pair, make sure the roadmap is up to date (tasks checked off, etc). Then save the docs to ai/roadmaps/complete. Then update aiDocs/changelog.md accordingly.
 
 ---
 
@@ -68,7 +68,7 @@ Phases 0–7 are complete. Phase roadmaps are archived in `ai/roadmaps/complete/
 MicroDeck is a minimalist Flutter habit initiation app. Core philosophy: one card, two minutes, no judgment.
 Built for people with ADHD, executive dysfunction, or digital burnout.
 
-Always read `aiDocs/context.md` first to understand the current project state. For full product requirements see `aiDocs/prd.md`. For architecture decisions see `aiDocs/architecture.md`. For what has changed see `ai/changelog.md`.
+Always read `aiDocs/context.md` first to understand the current project state. For full product requirements see `aiDocs/prd.md`. For architecture decisions see `aiDocs/architecture.md`. For what has changed see `aiDocs/changelog.md`.
 
 ---
 
@@ -121,6 +121,6 @@ Refer to aiDocs/coding-style.md for coding style.
 ## Development Process
 
 - New plan docs go in `ai/roadmaps/` with a date prefix (e.g. `2026-04-01-phase-8-foo.md`). Plans and roadmaps come in pairs. Both must reference each other.
-- When a phase is complete: check off tasks in the roadmap, move both files to `ai/roadmaps/complete/`, update `ai/changelog.md`.
+- When a phase is complete: check off tasks in the roadmap, move both files to `ai/roadmaps/complete/`, update `aiDocs/changelog.md`.
 - Keep `aiDocs/context.md` current — update it whenever the project state changes.
 - Keep documents as living artifacts. Stale docs are worse than no docs.
