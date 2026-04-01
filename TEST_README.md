@@ -26,14 +26,13 @@ test/
   unit/
     card_model_test.dart         CardModel toMap/fromMap, durationLabel
     schedule_model_test.dart     ScheduleModel toMap/fromMap, hour/minute getters
-    templates_test.dart          starterTemplates count, areas, content integrity
     card_repository_test.dart    Full CRUD via in-memory SQLite (no emulator)
   widgets/
-    onboarding_test.dart         Goal + action screens: field validation, button states
+    onboarding_test.dart         CreateCard screens: field validation, button states
     deck_screen_test.dart        Empty state, card rendering, FAB, header icons
     timer_screen_test.dart       Countdown display, initial time, tick decrement
 integration_test/
-  app_test.dart                  Full onboarding → deck → add → defer → settings flow
+  app_test.dart                  Full onboarding → deck → add → settings → timer flow
 scripts/
   analyze.sh / analyze.ps1       Analysis + formatting (fastest, no tests)
   test.sh / test.ps1             Full test suite (unit + widget, optionally integration)
@@ -138,17 +137,6 @@ Verifies `ScheduleModel` serialization (weekdays as JSON array, time getters).
 | `hour/minute getters` | Correct time decomposition |
 | `empty weekdays list` | Edge case handling |
 
-### `test/unit/templates_test.dart`
-Verifies the static starter template list.
-
-| Test | Feature covered |
-|---|---|
-| `contains exactly 20 templates` | Template count contract |
-| `every template has non-empty fields` | Content integrity |
-| `all areas from known set` | Area categorisation |
-| `each area has at least one template` | Template completeness |
-| `no duplicate actionLabels` | Template uniqueness |
-
 ### `test/unit/card_repository_test.dart`
 Exercises every repository method against an in-memory SQLite database. No emulator needed — uses `sqflite_common_ffi`.
 
@@ -200,10 +188,11 @@ Full end-to-end tests on a real emulator. Each test group is independent.
 | Test group | Flow exercised |
 |---|---|
 | First launch onboarding | Welcome → Goal → Action → Confirm → Deck |
-| Add card via FAB | Deck → Template browser sheet |
+| Add card via FAB | Deck → voice/type method sheet → goal screen |
 | Swipe to defer | Card swipe left removes from visible list |
 | Settings screen | Header icon → Settings screen opens |
 | Timer screen | Tap card → Timer countdown visible |
+| Voice AI suggestions regression | FAB shows voice/type options; "Type it" reaches goal screen |
 
 ---
 

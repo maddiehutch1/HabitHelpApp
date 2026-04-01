@@ -1,5 +1,5 @@
 # Micro-Deck — Project Context
-*Last updated: February 2026*
+*Last updated: March 2026*
 
 ---
 
@@ -16,7 +16,7 @@ Core philosophy: **one card, two minutes, no judgment.**
 | Doc | Path | Purpose |
 |---|---|---|
 | PRD | `aiDocs/prd.md` | Full product requirements — features, data models, metrics, out-of-scope |
-| MVP | `aiDocs/mvp.md` | Demo scope — 6 screens, core loop only, definition of done |
+| MVP | `aiDocs/mvp.md` | Demo scope — core loop definition of done |
 | Architecture | `aiDocs/architecture.md` | Tech stack, verified packages, data models, folder structure, hard constraints |
 | Market Research | `ai/guides/habit-help-market-research.md` | Competitive landscape, risks, positioning |
 | Changelog | `ai/changelog.md` | Changelog with brief notes about each change to the codebase |
@@ -24,18 +24,17 @@ Core philosophy: **one card, two minutes, no judgment.**
 
 ---
 
-## MVP Scope (Current Focus)
+## Current App Screens
 
-6 screens that prove the core loop works end-to-end:
-
-1. **Welcome** — first launch only; app name + one-line purpose + [Let's begin]
-2. **Onboarding 1A** — "What do you want to work toward?" (goal)
-3. **Onboarding 1B** — "What's one tiny thing that starts it?" (action, goal shown as context)
-4. **Onboarding 2** — confirmation + [Start now] / [Save for later]
-5. **Timer** — full-screen countdown, pulsing dot, haptic on completion
-6. **Deck View** — card list, tap to start timer, [+] to add cards
-
-MVP is done when a user can go from cold launch to haptic completion in under 90 seconds, on a real device, without crashes.
+- **Welcome** — first launch only; [Let's begin] → card creation flow
+- **CreateCardGoalScreen** — "What feels big and difficult right now?"
+- **CreateCardActionScreen** — "What's one tiny step you could take first?"; AI suggestions ("I'm stuck", "Make this smaller")
+- **CreateCardConfirmScreen** — "Ready for your tiny start?"; [Start now] / [Save for later]
+- **Timer** — full-screen countdown, pulsing dot, haptic on completion; [Done] / [Keep going]
+- **Deck View** — card list, tap to start timer; FAB opens voice/type sheet; Fresh Start mode support
+- **VoiceAISuggestionsScreen** — AI-extracted tasks from voice recording; checkable, editable, multi-card queue
+- **Settings** — Fresh Start toggle, AI Suggestions toggle, archived (resting) cards
+- **Past Days** — cards archived by daily rollover, grouped by date, restorable
 
 ---
 
@@ -48,23 +47,16 @@ MVP is done when a user can go from cold launch to haptic completion in under 90
 
 ## Current Focus
 
-Phases 0–3 are complete and archived in `ai/roadmaps/complete/`.
-
-**Phase 4 — Future Planning** is the next phase (deferred until real user feedback exists).
-See: `ai/roadmaps/2026-02-19-phase-4-future-planning.md`
+Phases 0–7 are complete. Phase roadmaps are archived in `ai/roadmaps/complete/`. The high-level project plan (`ai/roadmaps/2026-02-19-high-level-project-plan.md`) stays at the roadmaps root as a persistent reference.
 
 **CLI Testing Infrastructure** is complete. Run `.\\scripts\\test.ps1` (Windows) or `bash scripts/test.sh` (Mac/Linux). See `TEST_README.md` and `ai/roadmaps/complete/2026-02-21-extra-cli-testing.md`.
 
 ---
 
-## What's Explicitly Out of Scope (v1 post-demo)
+## What's Explicitly Out of Scope
 
-- Scheduling / notifications
-- Pro tier / paywall
-- Swipe-to-defer, archiving, Dormant Deck
-- "Just One" mode
-- Goal management (multiple goals)
-- Adjustable timer duration
-- Starter templates library
+- Multiple independent goals (goal is stored as a label on each card, not a separate entity)
+- Habit history / analytics views shown to the user
 - Apple Watch, widgets, Siri integration
-- Any backend, cloud sync, or social features
+- Cloud sync, backend, user accounts, social features
+- App Store / Play Store submission (deferred)

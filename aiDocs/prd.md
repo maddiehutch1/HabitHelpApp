@@ -1,7 +1,7 @@
-# Product Requirements Document — Micro-Deck
-**Version:** 1.0
-**Status:** Draft
-**Last Updated:** February 2026
+﻿# Product Requirements Document — Micro-Deck
+**Version:** 1.1
+**Status:** Active
+**Last Updated:** March 2026
 **Platform:** Flutter (iOS + Android)
 **Scope:** v1 MVP
 
@@ -119,17 +119,18 @@ Sub-line: "One card. Two minutes. That's it."
 [Let's begin →]
 
 Screen 1A — Goal
-"What do you want to work toward?"
+"What feels big and difficult right now?"
 [text field — open placeholder: "e.g. Run more often · Sleep better · Write regularly"]
 [Next →]
 
 Screen 1B — Action (goal shown faintly above as context)
-"What's one tiny thing that starts it?"
+"What's one tiny step you could take first?"
 [text field — verb-first placeholder: "e.g. Put on my running shoes"]
+AI affordances: "I'm stuck – show ideas" / "Make this smaller"
 [Let's go →]
 
 Screen 2 — Confirmation
-"Good. Let's do two minutes of it right now."
+"Ready for your tiny start?"
 User's typed action label shown back to them
 [Start now]   [Save for later]
 
@@ -168,37 +169,31 @@ The primary view of the app. A vertical stack of user-created cards.
 - **Pull down** → reveal "Just One" mode (shows only top card, hides rest)
 
 **Deck rules:**
-- Free tier: 1 goal, up to 5 cards
-- Pro tier: unlimited goals and cards
-- Cards are ordered by: scheduled time (if set) → manual order
-- No reorder animation complexity — simple drag to reorder
+- No card limit — freemium/IAP layer removed (deferred to a future evidence-first phase)
+- Cards are ordered by creation time; tap to start timer at any time
+- Fresh Start mode: optional daily rollover archives active cards each new day
 
 ### 4.3 Card Creation
 
-**Creation flow:**
+**Entry points:**
+- FAB on deck opens a method sheet: **Voice** or **Type it**
+- Voice path: records up to 30s → AI extracts up to 3 task titles → `VoiceAISuggestionsScreen` → each selected task routes through the creation flow
+- Type it path: goes directly to `CreateCardGoalScreen`
+
+**Creation flow (unified for onboarding and ongoing use):**
 ```
-1. "What's the action?" (required)
-   Placeholder: "Start with a verb — 'Open', 'Put on', 'Write one sentence'"
+1. "What feels big and difficult right now?" (goal — required)
+   Optional: prefilled from voice transcription or AI suggestion
 
-2. "What goal is this for?" (optional)
-   Placeholder: "e.g. Run 3x/week" — private, never shown to others
+2. "What's one tiny step you could take first?" (action — required)
+   AI buttons: "I'm stuck – show ideas" (2–3 AI chips) / "Make this smaller" (1 chip)
+   Both require prior AI consent and respect the Settings toggle
 
-3. "How long?" (optional, defaults to 2 min)
-   Slider: 1 – 10 minutes
-
-4. "When do you want to try this?" (optional — Pro feature)
-   Day picker + time picker
-   Repeating or one-time
+3. "Ready for your tiny start?"
+   [Start now] → Timer   [Save for later] → Deck
 ```
 
-**Starter templates (Free + Pro):**
-A small browsable library (~20 cards) users can pull from and personalize. Organized by rough life area (movement, focus, connection, rest). Templates reduce blank-page friction without being prescriptive.
-
-Examples:
-- "Put on walking shoes" → Move more
-- "Open my notebook" → Write regularly
-- "Fill my water bottle" → Drink more water
-- "Text one person" → Stay connected
+**Starter templates:** removed in Phase 6. AI suggestions ("I'm stuck") serve the blank-page friction problem instead.
 
 ### 4.4 The Timer (Silent Pulse)
 
@@ -269,28 +264,9 @@ For users in a low-function state who can't engage with a full deck.
 - "Not today" moves the card to tomorrow with no prompt, no guilt copy
 - Mode persists until user dismisses it
 
-### 4.8 Monetization — Freemium + One-Time Pro Unlock
+### 4.8 Monetization — Deferred
 
-**Free tier (forever, no expiration):**
-- 1 goal with up to 5 cards
-- Full timer experience
-- Full haptic completion
-- Starter templates
-- "Just One" mode
-- Manual deck use (no scheduling)
-
-**Pro tier (one-time purchase, $4.99–$6.99):**
-- Unlimited goals and cards
-- Card scheduling + notifications
-- Dormant Deck (archive/restore)
-- Additional template library
-- (Future) Apple Watch companion
-
-**Paywall placement:**
-- Shown after first successful card completion — motivation is highest here
-- Never shown during onboarding
-- Never shown as a gate to the core timer experience
-- Copy: *"Unlock the full deck. No subscription. No account. Yours forever."*
+Freemium / IAP layer was removed in February 2026 (before sufficient user evidence existed to validate pricing and Pro feature value). All features are freely accessible in the current build. Monetization is a hypothesis to revisit post-launch with real retention and engagement data.
 
 ---
 
@@ -304,9 +280,9 @@ For users in a low-function state who can't engage with a full deck.
 | Target platforms | iOS (primary), Android (same codebase) |
 | Minimum iOS version | iOS 16+ |
 | Minimum Android version | Android 8.0 (API 26)+ |
-| Local storage | `drift` (SQLite wrapper, type-safe) |
+| Local storage | `sqflite` (direct SQLite; migrations via `onUpgrade`) |
 | Notifications | `flutter_local_notifications` |
-| Haptics | `haptic_feedback` package |
+| Haptics | Flutter SDK built-in (`HapticFeedback.mediumImpact()`) |
 | State management | Riverpod |
 | Build pipeline (iOS) | Codemagic CI/CD |
 
@@ -360,11 +336,11 @@ To work within the iOS 64-notification limit:
 
 ### 5.4 Offline & Privacy Requirements
 
-- Zero network requests in v1
+- Network requests limited to OpenAI API calls from `ai_service.dart` — only when the user has explicitly granted AI consent (`aiSuggestionsEnabled` pref). All other data is local-only.
 - No analytics SDK
 - No crash reporting SDK that phones home (use Flutter's built-in error handling with local logging only)
 - No third-party SDKs beyond package dependencies
-- App Store privacy label: no data collected
+- API key loaded via `--dart-define` / `.env.json` (gitignored); never committed to the repo
 
 ### 5.5 Performance Requirements
 
@@ -468,11 +444,12 @@ The following are explicitly excluded from v1 to maintain product focus:
 | Android-specific optimizations | Same codebase ships; no platform-specific work |
 | Cloud sync / iCloud backup | Undermines no-account value prop; deferred |
 | Social sharing | Contradicts privacy-first philosophy |
-| LLM / AI suggestions | Insufficient local data in v1 to personalize meaningfully |
 | Habit history / analytics views | Core philosophy: no history shown to user |
 | Multiple notification times per card | Adds scheduling complexity; one time per card in v1 |
 | Widget support | Deferred to v2 |
 | Siri / Shortcuts integration | Deferred to v2 |
+| Freemium / IAP | Removed — insufficient evidence to validate pricing; revisit post-launch |
+| App Store / Play Store submission | Deferred until post-demo feedback gathered |
 
 ---
 
@@ -486,3 +463,4 @@ These require user research or early testing to resolve before implementation:
 4. **"Just One" mode discoverability:** Pull-down is low-discoverability — consider whether this needs a more visible entry point.
 5. **Free tier card limit:** 5 cards per 1 goal — is this enough for users to feel the value of the product, or does it feel too constrained for real use?
 6. **Pro paywall timing:** Show after first completion vs. after first session with 3+ cards completed — which moment produces higher conversion?
+
