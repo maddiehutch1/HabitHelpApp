@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -10,10 +9,9 @@ import '../../data/database.dart';
 import '../../data/models/card_model.dart';
 import '../../data/models/session_model.dart';
 import '../../routes.dart';
-import '../../services/notification_service.dart';
 import '../../theme.dart';
-import '../create_card/next_step_screen.dart';
 import '../deck/deck_screen.dart';
+import 'celebration_screen.dart';
 
 class TimerScreen extends StatefulWidget {
   const TimerScreen({super.key, required this.card});
@@ -25,20 +23,21 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen>
-    with TickerProviderStateMixin, WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late int _secondsRemaining;
   Timer? _ticker;
+  Timer? _fadeTimer;
   bool _isRunning = true;
-  bool _isComplete = false;
-  int _extraTimeSeconds = 0;
+  bool _isCompleting = false;
+  bool _isOvertime = false;
+  int _overtimeSeconds = 0;
+  Timer? _overtimeTicker;
   late final String _sessionId;
   late final int _startedAt;
 
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulseOpacity;
-
-  late final AnimationController _completionController;
-  late final Animation<double> _completionOpacity;
+  // Timer digit fade animation (1.0 → 0.1 after 5s, back to 1.0 at 10s remaining)
+  late final AnimationController _timerOpacityController;
+  late final Animation<double> _timerOpacity;
 
   @override
   void initState() {
@@ -50,32 +49,24 @@ class _TimerScreenState extends State<TimerScreen>
     WakelockPlus.enable();
     WidgetsBinding.instance.addObserver(this);
 
-    _pulseController = AnimationController(
+    _timerOpacityController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3000),
-    )..repeat(reverse: true);
-
-    _pulseOpacity = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+      duration: const Duration(milliseconds: 800),
     );
-
-    _completionController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _completionOpacity = CurvedAnimation(
-      parent: _completionController,
-      curve: Curves.easeIn,
+    _timerOpacity = Tween<double>(begin: 1.0, end: 0.1).animate(
+      CurvedAnimation(parent: _timerOpacityController, curve: Curves.easeInOut),
     );
 
     _startTicker();
+    _scheduleFade();
   }
 
   @override
   void dispose() {
     _ticker?.cancel();
-    _pulseController.dispose();
-    _completionController.dispose();
+    _fadeTimer?.cancel();
+    _overtimeTicker?.cancel();
+    _timerOpacityController.dispose();
     WakelockPlus.disable();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -86,33 +77,57 @@ class _TimerScreenState extends State<TimerScreen>
     if (state == AppLifecycleState.paused) _pause();
   }
 
+  /// Schedules the 5-second delayed fade to 10% opacity.
+  void _scheduleFade() {
+    _fadeTimer?.cancel();
+    _fadeTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted && _isRunning) {
+        _timerOpacityController.forward();
+      }
+    });
+  }
+
   void _startTicker() {
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() {
         if (_secondsRemaining > 0) {
           _secondsRemaining--;
+          // Snap back to full opacity at 10s remaining
+          if (_secondsRemaining <= 10) {
+            _timerOpacityController.reverse();
+          }
         } else {
           _ticker?.cancel();
           _isRunning = false;
-          _isComplete = true;
-          _onComplete();
+          _enterOvertimeMode();
         }
       });
     });
   }
 
+  void _enterOvertimeMode() {
+    _fadeTimer?.cancel();
+    _timerOpacityController.reverse();
+    HapticFeedback.mediumImpact();
+    setState(() => _isOvertime = true);
+    _overtimeTicker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() => _overtimeSeconds++);
+    });
+  }
+
   void _pause() {
+    _fadeTimer?.cancel();
     _ticker?.cancel();
-    _pulseController.stop();
+    _timerOpacityController.reverse();
     if (mounted) setState(() => _isRunning = false);
   }
 
   void _resume() {
-    if (_isComplete) return;
-    _pulseController.repeat(reverse: true);
     setState(() => _isRunning = true);
     _startTicker();
+    _scheduleFade();
   }
 
   void _togglePause() {
@@ -123,119 +138,96 @@ class _TimerScreenState extends State<TimerScreen>
     }
   }
 
-  Future<void> _onComplete() async {
-    _pulseController.stop();
+  int get _elapsedSeconds =>
+      widget.card.durationSeconds - _secondsRemaining;
+
+  Future<void> _handleExitEarly() async {
+    _fadeTimer?.cancel();
+    _ticker?.cancel();
+    final elapsed = _elapsedSeconds;
+    await _saveSession(isPartial: true, elapsedSeconds: elapsed);
+    if (!mounted) return;
+    Navigator.of(
+      context,
+    ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
+  }
+
+  Future<void> _handleComplete() async {
+    if (_isCompleting) return;
+    _isCompleting = true;
+    _fadeTimer?.cancel();
+    _ticker?.cancel();
+
+    final elapsed = _elapsedSeconds;
+    await _saveSession(isPartial: false, elapsedSeconds: elapsed);
+
     await HapticFeedback.mediumImpact();
-    _completionController.forward();
-
-    // Show the choice UI instead of automatically going to deck
-    // Don't auto-navigate anymore
-  }
-
-  Future<void> _handlePostCompletion() async {
-    await _maybeRequestNotificationPermission();
-    await _maybeShowExplainer();
-  }
-
-  Future<void> _maybeRequestNotificationPermission() async {
-    try {
-      final prefs = SharedPreferencesAsync();
-      final asked =
-          await prefs.getBool('hasAskedNotificationPermission') ?? false;
-      if (asked) return;
-      await prefs.setBool('hasAskedNotificationPermission', true);
-      await NotificationService.instance.requestPermission();
-    } catch (_) {}
-  }
-
-  Future<void> _maybeShowExplainer() async {
-    try {
-      final prefs = SharedPreferencesAsync();
-      final seen = await prefs.getBool('hasSeenExplainer') ?? false;
-      if (seen) return;
-      await prefs.setBool('hasSeenExplainer', true);
-      if (!mounted) return;
-      await showModalBottomSheet<void>(
-        context: context,
-        backgroundColor: AppColors.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      fadeRoute(
+        CelebrationScreen(
+          card: widget.card,
+          elapsedSeconds: elapsed,
+          extraTimeSeconds: 0,
         ),
-        builder: (_) => const _ExplainerSheet(),
-      );
-    } catch (_) {}
+      ),
+      (route) => false,
+    );
   }
 
-  Future<void> _handleDone() async {
-    await _storeSession();
-    await _handlePostCompletion();
+  Future<void> _handleOvertimeAction({required bool doNextTask}) async {
+    if (_isCompleting) return;
+    _isCompleting = true;
+    _overtimeTicker?.cancel();
+    _fadeTimer?.cancel();
+
+    await _saveSession(
+      isPartial: false,
+      elapsedSeconds: widget.card.durationSeconds,
+      extraTimeSeconds: _overtimeSeconds,
+    );
 
     if (!mounted) return;
-
-    // Only show continuation prompt if the card has a goal label
-    if (widget.card.goalLabel != null && widget.card.goalLabel!.isNotEmpty) {
-      _showContinuationPrompt();
+    if (doNextTask) {
+      // Navigate to CelebrationScreen which owns the post-completion flow
+      Navigator.of(context).pushAndRemoveUntil(
+        fadeRoute(
+          CelebrationScreen(
+            card: widget.card,
+            elapsedSeconds: widget.card.durationSeconds + _overtimeSeconds,
+            extraTimeSeconds: _overtimeSeconds,
+          ),
+        ),
+        (route) => false,
+      );
     } else {
-      _goToDeck();
+      // I'm finished — go straight to deck
+      Navigator.of(
+        context,
+      ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
     }
   }
 
-  void _showContinuationPrompt() {
-    showModalBottomSheet<bool>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      isDismissible: false,
-      builder: (_) => const _ContinuationPromptSheet(),
-    ).then((continueNext) {
-      if (!mounted) return;
-      if (continueNext == true) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => NextStepScreen(goalLabel: widget.card.goalLabel!),
-          ),
-        );
-      } else {
-        _goToDeck();
-      }
-    });
-  }
-
-  Future<void> _storeSession() async {
+  Future<void> _saveSession({
+    required bool isPartial,
+    required int elapsedSeconds,
+    int extraTimeSeconds = 0,
+  }) async {
     try {
       final db = await getDatabase();
       final session = SessionModel(
         id: _sessionId,
         cardId: widget.card.id,
         startedAt: _startedAt,
-        completedAt: DateTime.now().millisecondsSinceEpoch,
+        completedAt: _startedAt + (elapsedSeconds * 1000),
         baseDurationSeconds: widget.card.durationSeconds,
-        extraTimeSeconds: _extraTimeSeconds,
+        extraTimeSeconds: extraTimeSeconds,
+        isPartial: isPartial,
       );
       await db.insert('sessions', session.toMap());
-    } catch (e) {
-      // Silently fail if session storage fails
+    } catch (_) {
+      // Silently fail — session loss is non-critical
     }
-  }
-
-  void _handleKeepGoing() {
-    setState(() {
-      _extraTimeSeconds += widget.card.durationSeconds;
-      _secondsRemaining = widget.card.durationSeconds;
-      _isComplete = false;
-      _isRunning = true;
-    });
-    _completionController.reset();
-    _pulseController.repeat(reverse: true);
-    _startTicker();
-  }
-
-  void _goToDeck() {
-    Navigator.of(
-      context,
-    ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
   }
 
   String _formatTime(int seconds) {
@@ -244,212 +236,180 @@ class _TimerScreenState extends State<TimerScreen>
     return '$m:$s';
   }
 
-  String formatExtraTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '$minutes:${secs.toString().padLeft(2, '0')}';
-  }
-
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !_isRunning || _isComplete,
+      canPop: false,
       child: Scaffold(
         body: SafeArea(
-          child: GestureDetector(
-            onTap: _isComplete ? null : _togglePause,
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox.expand(
-              child: _isComplete ? _buildCompletion() : _buildTimer(),
-            ),
-          ),
+          child: _isOvertime
+              ? _buildOvertimeBody()
+              : Column(
+                  children: [
+                    Expanded(child: _buildTimerBody()),
+                    _buildActionButtons(),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                ),
         ),
       ),
     );
   }
 
-  Widget _buildTimer() {
-    return Stack(
-      children: [
-        Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: Text(
-                  widget.card.actionLabel,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.timerLabel,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Semantics(
-                label: 'Time remaining: ${_formatTime(_secondsRemaining)}',
-                child: Text(
-                  _formatTime(_secondsRemaining),
-                  style: AppTextStyles.timerDisplay,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              FadeTransition(
-                opacity: _pulseOpacity,
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: const BoxDecoration(
-                    color: AppColors.textPrimary,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (!_isRunning)
-          Positioned(
-            bottom: 48,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Semantics(
-                button: true,
-                label: 'End session',
-                child: TextButton(
-                  onPressed: _goToDeck,
-                  child: const Text('End session'),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildCompletion() {
-    final completionMessage = _extraTimeSeconds > 0
-        ? '${widget.card.durationSeconds ~/ 60} minutes + ${formatExtraTime(_extraTimeSeconds)} extra'
-        : 'You hit your ${widget.card.durationSeconds ~/ 60} minutes.';
-
+  Widget _buildTimerBody() {
     return Center(
-      child: FadeTransition(
-        opacity: _completionOpacity,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                completionMessage,
-                style: AppTextStyles.completion,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _handleDone,
-                  child: const Text('Done'),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: _handleKeepGoing,
-                  child: const Text('Keep going'),
-                ),
-              ),
-            ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Text(
+              widget.card.actionLabel,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.timerLabel,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
+          const SizedBox(height: AppSpacing.lg),
+          Semantics(
+            label: 'Time remaining: ${_formatTime(_secondsRemaining)}',
+            child: AnimatedBuilder(
+              animation: _timerOpacity,
+              builder: (context, child) => Opacity(
+                opacity: _timerOpacity.value,
+                child: child,
+              ),
+              child: Text(
+                _formatTime(_secondsRemaining),
+                style: AppTextStyles.timerDisplay,
+              ),
+            ),
+          ),
+          // Pause/Resume
+          OutlinedButton.icon(
+            onPressed: _togglePause,
+            icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow, size: 18),
+            label: Text(_isRunning ? 'Pause' : 'Resume'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.textMuted,
+              side: const BorderSide(color: AppColors.border),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Overtime layout: centered column, all content grouped together.
+  Widget _buildOvertimeBody() {
+    const buttonPadding = EdgeInsets.symmetric(horizontal: 24, vertical: 14);
+    const buttonTextStyle = AppTextStyles.button;
+    const buttonShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(12)),
+    );
+
+    return Align(
+      alignment: const Alignment(0, -0.15),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Card label
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Text(
+                widget.card.actionLabel,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.timerLabel,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            // Count-up timer
+            Semantics(
+              label: 'Extra time: +${_formatTime(_overtimeSeconds)}',
+              child: Text(
+                '+${_formatTime(_overtimeSeconds)}',
+                style: AppTextStyles.timerDisplay,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            // I'm finished
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => _handleOvertimeAction(doNextTask: false),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textMuted,
+                  side: const BorderSide(color: AppColors.border),
+                  padding: buttonPadding,
+                  textStyle: buttonTextStyle,
+                  shape: buttonShape,
+                ),
+                child: const Text("I'm finished"),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            // Do next task
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _isCompleting
+                    ? null
+                    : () => _handleOvertimeAction(doNextTask: true),
+                style: FilledButton.styleFrom(
+                  padding: buttonPadding,
+                  textStyle: buttonTextStyle,
+                ),
+                child: const Text('Do next task'),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-}
 
-// ─── Post-Completion Explainer ────────────────────────────────────────────────
+  Widget _buildActionButtons() {
+    const buttonPadding = EdgeInsets.symmetric(horizontal: 24, vertical: 14);
+    const buttonTextStyle = AppTextStyles.button;
 
-class _ExplainerSheet extends StatelessWidget {
-  const _ExplainerSheet();
-
-  @override
-  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.page),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          const Text("That's how it works.", style: AppTextStyles.headline),
-          const SizedBox(height: AppSpacing.sm),
-          const Text(
-            "Two minutes was enough to start. The hardest part isn't the doing — it's deciding to begin. You just did that.",
-            style: AppTextStyles.bodyMuted,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Got it'),
+          // Exit Early
+          OutlinedButton(
+            onPressed: _handleExitEarly,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.textMuted,
+              side: const BorderSide(color: AppColors.border),
+              padding: buttonPadding,
+              textStyle: buttonTextStyle,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
+            child: const Text('Exit Early'),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          // Complete
+          FilledButton.icon(
+            onPressed: _isCompleting ? null : _handleComplete,
+            style: FilledButton.styleFrom(
+              padding: buttonPadding,
+              textStyle: buttonTextStyle,
+            ),
+            icon: const Icon(Icons.check),
+            label: const Text('Complete'),
+          ),
         ],
       ),
     );
   }
 }
 
-// ─── Continuation Prompt ──────────────────────────────────────────────────────
-
-class _ContinuationPromptSheet extends StatelessWidget {
-  const _ContinuationPromptSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.page,
-        AppSpacing.md,
-        AppSpacing.page,
-        AppSpacing.md + bottomInset,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Nice work.',
-            style: AppTextStyles.headline,
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          const Text(
-            'Ready for the next tiny step?',
-            style: AppTextStyles.bodyMuted,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text("Yes, let's go"),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Not now'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

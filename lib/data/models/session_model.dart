@@ -6,6 +6,7 @@ class SessionModel {
     required this.baseDurationSeconds,
     this.completedAt,
     this.extraTimeSeconds = 0,
+    this.isPartial = false,
   });
 
   final String id;
@@ -14,6 +15,9 @@ class SessionModel {
   final int? completedAt;
   final int baseDurationSeconds;
   final int extraTimeSeconds;
+
+  /// True if the user exited early (incomplete session).
+  final bool isPartial;
 
   /// Total duration = base + extra time
   int get totalDurationSeconds => baseDurationSeconds + extraTimeSeconds;
@@ -29,6 +33,7 @@ class SessionModel {
       'completedAt': completedAt,
       'baseDurationSeconds': baseDurationSeconds,
       'extraTimeSeconds': extraTimeSeconds,
+      'isPartial': isPartial ? 1 : 0,
     };
   }
 
@@ -40,6 +45,7 @@ class SessionModel {
       completedAt: map['completedAt'] as int?,
       baseDurationSeconds: map['baseDurationSeconds'] as int,
       extraTimeSeconds: map['extraTimeSeconds'] as int? ?? 0,
+      isPartial: (map['isPartial'] as int? ?? 0) == 1,
     );
   }
 }
