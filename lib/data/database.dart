@@ -25,7 +25,7 @@ Future<Database> getDatabase() async {
   final path = _testDbPath ?? join(await getDatabasesPath(), 'microdeck.db');
   _db = await openDatabase(
     path,
-    version: 4,
+    version: 5,
     onCreate: (db, version) async {
       await db.execute('''
         CREATE TABLE cards (
@@ -36,7 +36,8 @@ Future<Database> getDatabase() async {
           sortOrder INTEGER NOT NULL,
           createdAt INTEGER NOT NULL,
           isArchived INTEGER NOT NULL DEFAULT 0,
-          archivedDate INTEGER
+          archivedDate INTEGER,
+          completedAt INTEGER
         )
       ''');
       await db.execute('''
@@ -104,6 +105,9 @@ Future<Database> getDatabase() async {
             FOREIGN KEY (cardId) REFERENCES cards (id) ON DELETE CASCADE
           )
         ''');
+      }
+      if (oldVersion < 5) {
+        await db.execute('ALTER TABLE cards ADD COLUMN completedAt INTEGER');
       }
     },
   );

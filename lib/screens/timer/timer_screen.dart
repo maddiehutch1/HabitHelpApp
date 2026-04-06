@@ -12,6 +12,7 @@ import '../../data/models/session_model.dart';
 import '../../routes.dart';
 import '../../services/notification_service.dart';
 import '../../theme.dart';
+import '../create_card/next_step_screen.dart';
 import '../deck/deck_screen.dart';
 
 class TimerScreen extends StatefulWidget {
@@ -166,14 +167,40 @@ class _TimerScreenState extends State<TimerScreen>
   }
 
   Future<void> _handleDone() async {
-    // Store session in database
     await _storeSession();
-
-    // Request notification permission and show explainer in parallel
     await _handlePostCompletion();
 
     if (!mounted) return;
-    _goToDeck();
+
+    // Only show continuation prompt if the card has a goal label
+    if (widget.card.goalLabel != null && widget.card.goalLabel!.isNotEmpty) {
+      _showContinuationPrompt();
+    } else {
+      _goToDeck();
+    }
+  }
+
+  void _showContinuationPrompt() {
+    showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isDismissible: false,
+      builder: (_) => const _ContinuationPromptSheet(),
+    ).then((continueNext) {
+      if (!mounted) return;
+      if (continueNext == true) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => NextStepScreen(goalLabel: widget.card.goalLabel!),
+          ),
+        );
+      } else {
+        _goToDeck();
+      }
+    });
   }
 
   Future<void> _storeSession() async {
@@ -371,6 +398,56 @@ class _ExplainerSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Continuation Prompt ──────────────────────────────────────────────────────
+
+class _ContinuationPromptSheet extends StatelessWidget {
+  const _ContinuationPromptSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.page,
+        AppSpacing.md,
+        AppSpacing.page,
+        AppSpacing.md + bottomInset,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Nice work.',
+            style: AppTextStyles.headline,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          const Text(
+            'Ready for the next tiny step?',
+            style: AppTextStyles.bodyMuted,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text("Yes, let's go"),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Not now'),
+            ),
+          ),
         ],
       ),
     );

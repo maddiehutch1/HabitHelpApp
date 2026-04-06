@@ -12,6 +12,9 @@ import '../create_card/voice_ai_suggestions_screen.dart';
 import '../past_days/past_days_screen.dart';
 import '../settings/settings_screen.dart';
 import '../timer/timer_screen.dart';
+import '../create_card/next_step_screen.dart';
+import 'completion_screen.dart';
+import 'widgets/card_detail_sheet.dart';
 import 'widgets/voice_input_sheet.dart';
 
 class DeckScreen extends ConsumerStatefulWidget {
@@ -28,6 +31,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
   int _justOneIndex = 0;
   bool _isFreshStartMode = false;
   int _archivedCardCount = 0;
+  Set<String> _recentGoalLabels = {};
 
   @override
   void initState() {
@@ -112,8 +116,11 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
   Future<void> _onLoad() async {
     try {
       await ref.read(cardsProvider.notifier).loadCards();
-      await _checkArchivePrompts();
       await _loadPreferences();
+      final recentGoals = await ref
+          .read(cardsProvider.notifier)
+          .getGoalLabelsWithRecentSessions();
+      if (mounted) setState(() => _recentGoalLabels = recentGoals);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -121,32 +128,6 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
         ).showSnackBar(const SnackBar(content: Text('Could not load cards.')));
       }
     }
-  }
-
-  Future<void> _checkArchivePrompts() async {
-    final candidates = await ref
-        .read(cardsProvider.notifier)
-        .getCardsNeedingArchivePrompt();
-    if (candidates.isNotEmpty && mounted) {
-      _showArchivePrompt(candidates.first);
-    }
-  }
-
-  void _showArchivePrompt(CardModel card) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      showModalBottomSheet<void>(
-        context: context,
-        backgroundColor: AppColors.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        builder: (_) => _ArchivePromptSheet(
-          card: card,
-          onRest: () => ref.read(cardsProvider.notifier).archiveCard(card.id),
-        ),
-      );
-    });
   }
 
   Future<void> _openTimer(CardModel card) async {
@@ -157,6 +138,150 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
       setState(() => _navigating = false);
       await _onLoad();
     }
+  }
+
+  Future<void> _openCardDetail(CardModel card) async {
+    if (_navigating) return;
+    final result = await showModalBottomSheet<_CardAction>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => CardDetailSheet(
+        card: card,
+        onStart: () => Navigator.of(context).pop(_CardAction.start),
+        onEdit: () => Navigator.of(context).pop(_CardAction.edit),
+        onComplete: () => Navigator.of(context).pop(_CardAction.complete),
+        onContinue: card.goalLabel != null && card.goalLabel!.isNotEmpty
+            ? () => Navigator.of(context).pop(_CardAction.continueNext)
+            : null,
+      ),
+    );
+
+    if (!mounted || result == null) return;
+
+    switch (result) {
+      case _CardAction.start:
+        setState(() => _navigating = true);
+        await Navigator.of(context).push(fadeRoute(TimerScreen(card: card)));
+        if (mounted) {
+          setState(() => _navigating = false);
+          await _onLoad();
+        }
+      case _CardAction.edit:
+        await _showEditSheet(card);
+      case _CardAction.complete:
+        await Navigator.of(context).push(
+          fadeRoute(CompletionScreen(
+            card: card,
+            onComplete: () async {
+              await ref.read(cardsProvider.notifier).completeCard(card.id);
+              if (mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  fadeRoute(const DeckScreen()),
+                  (route) => false,
+                );
+              }
+            },
+          )),
+        );
+      case _CardAction.continueNext:
+        if (card.goalLabel != null && card.goalLabel!.isNotEmpty) {
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => NextStepScreen(goalLabel: card.goalLabel!),
+            ),
+          );
+          if (mounted) await _onLoad();
+        }
+    }
+  }
+
+  Future<void> _showEditSheet(CardModel card) async {
+    final actionController = TextEditingController(text: card.actionLabel);
+    final goalController = TextEditingController(text: card.goalLabel ?? '');
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
+            final bottomPadding = MediaQuery.of(ctx).viewPadding.bottom;
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.page,
+                AppSpacing.md,
+                AppSpacing.page,
+                AppSpacing.md + bottomInset + bottomPadding,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Edit card', style: AppTextStyles.sheetTitle),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    controller: actionController,
+                    style: AppTextStyles.body,
+                    decoration: const InputDecoration(
+                      labelText: 'Action label',
+                    ),
+                    onChanged: (_) => setSheetState(() {}),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    controller: goalController,
+                    style: AppTextStyles.body,
+                    decoration: const InputDecoration(
+                      labelText: 'Goal label',
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: actionController.text.trim().isEmpty
+                          ? null
+                          : () => Navigator.of(ctx).pop(true),
+                      child: const Text('Save'),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (saved == true && mounted) {
+      final newAction = actionController.text.trim();
+      final newGoal = goalController.text.trim();
+      await ref.read(cardsProvider.notifier).updateCard(
+            card.id,
+            actionLabel: newAction,
+            goalLabel: newGoal.isEmpty ? null : newGoal,
+          );
+      await _onLoad();
+    }
+
+    actionController.dispose();
+    goalController.dispose();
   }
 
   Future<void> _openVoiceInput() async {
@@ -442,7 +567,23 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                       },
                       child: _CardTile(
                         card: card,
-                        onTap: () => _openTimer(card),
+                        onTap: () => _openCardDetail(card),
+                        showContinueNudge: card.goalLabel != null &&
+                            card.goalLabel!.isNotEmpty &&
+                            _recentGoalLabels.contains(card.goalLabel),
+                        onContinue: card.goalLabel != null &&
+                                card.goalLabel!.isNotEmpty
+                            ? () async {
+                                await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => NextStepScreen(
+                                      goalLabel: card.goalLabel!,
+                                    ),
+                                  ),
+                                );
+                                if (mounted) await _onLoad();
+                              }
+                            : null,
                       ),
                     );
                   },
@@ -594,13 +735,24 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
   }
 }
 
+// ─── Card Action Enum ─────────────────────────────────────────────────────────
+
+enum _CardAction { start, edit, complete, continueNext }
+
 // ─── Card Tile ────────────────────────────────────────────────────────────────
 
 class _CardTile extends StatelessWidget {
-  const _CardTile({required this.card, required this.onTap});
+  const _CardTile({
+    required this.card,
+    required this.onTap,
+    this.showContinueNudge = false,
+    this.onContinue,
+  });
 
   final CardModel card;
   final VoidCallback onTap;
+  final bool showContinueNudge;
+  final VoidCallback? onContinue;
 
   @override
   Widget build(BuildContext context) {
@@ -608,7 +760,7 @@ class _CardTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Semantics(
         button: true,
-        label: '${card.actionLabel}. Tap to start timer.',
+        label: '${card.actionLabel}. Tap for options.',
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
@@ -638,6 +790,19 @@ class _CardTile extends StatelessWidget {
                             style: AppTextStyles.cardGoal,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      if (showContinueNudge && onContinue != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: GestureDetector(
+                            onTap: onContinue,
+                            child: Text(
+                              'Continue \u2192',
+                              style: AppTextStyles.badge.copyWith(
+                                color: AppColors.textMuted,
+                              ),
+                            ),
                           ),
                         ),
                     ],
@@ -741,50 +906,3 @@ class _VoiceProcessingDialog extends StatelessWidget {
   }
 }
 
-// ─── Archive Prompt Sheet ─────────────────────────────────────────────────────
-
-class _ArchivePromptSheet extends StatelessWidget {
-  const _ArchivePromptSheet({required this.card, required this.onRest});
-
-  final CardModel card;
-  final VoidCallback onRest;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.page),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "You've set this one aside a few times. Want to rest it for now?",
-            style: AppTextStyles.headline,
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(card.actionLabel, style: AppTextStyles.bodyMuted),
-          const SizedBox(height: AppSpacing.lg),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                onRest();
-              },
-              child: const Text('Rest it'),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Keep it'),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-        ],
-      ),
-    );
-  }
-}

@@ -36,13 +36,32 @@ class CardsNotifier extends Notifier<List<CardModel>> {
     await loadCards();
   }
 
-  Future<void> restoreCard(String id) async {
-    await _repo.restoreCard(id);
+  Future<void> completeCard(String id) async {
+    state = state.where((c) => c.id != id).toList();
+    await _repo.completeCard(id);
     await loadCards();
   }
 
-  Future<List<CardModel>> getCardsNeedingArchivePrompt() async {
-    return _repo.getCardsNeedingArchivePrompt();
+  Future<List<CardModel>> getCompletedCards() async {
+    return _repo.getCompletedCards();
+  }
+
+  Future<void> updateCard(
+    String id, {
+    String? goalLabel,
+    String? actionLabel,
+  }) async {
+    await _repo.updateCard(id, goalLabel: goalLabel, actionLabel: actionLabel);
+    await loadCards();
+  }
+
+  Future<Set<String>> getGoalLabelsWithRecentSessions({int days = 7}) async {
+    return _repo.getGoalLabelsWithRecentSessions(days: days);
+  }
+
+  Future<void> restoreCard(String id) async {
+    await _repo.restoreCard(id);
+    await loadCards();
   }
 
   Future<int> getActiveCardCount() async {
