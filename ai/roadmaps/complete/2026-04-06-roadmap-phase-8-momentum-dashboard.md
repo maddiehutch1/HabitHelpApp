@@ -2,7 +2,7 @@
 *Created: April 6, 2026*
 *Detailed plan: [Phase 8 Plan](2026-04-06-phase-8-momentum-dashboard.md)*
 *Previous: [Phase 7 — Voice AI Suggestions](complete/2026-03-31-phase-7-voice-ai-suggestions.md)*
-*Status: 🔲 Not started*
+*Status: ✅ Complete*
 
 > **Avoid over-engineering, cruft, and legacy-compatibility features.**
 
@@ -20,16 +20,16 @@ Milestones are ordered by dependency. Work them in sequence — each builds on t
 
 | # | Milestone | Outcome | Depends On | Status |
 |---|---|---|---|---|
-| M8.1 | Data model changes | `completedAt` column added to cards table; `completeCard()` and `getCompletedCards()` wired through repo → provider | — | 🔲 |
-| M8.2 | Card detail bottom sheet | Tap card → sheet with Start / What's next / Edit / Complete; Start opens timer | M8.1 | 🔲 |
-| M8.3 | Edit card | Inline editing of goal + action labels from the detail sheet | M8.2 | 🔲 |
-| M8.4 | Completion celebration | "Complete" in sheet → full-screen warm moment → card archived with `completedAt` | M8.1, M8.2 | 🔲 |
-| M8.5 | Past Days: Completed section | Completed cards shown in Past Days, distinct from daily-rollover archives | M8.1, M8.4 | 🔲 |
-| M8.6 | NextStepScreen | New screen: goal context + action input + AI button + Start → creates card and starts timer | M8.1 | 🔲 |
-| M8.7 | Continuation prompt (post-timer) | After "Done" on timer → "Ready for the next tiny step?" → Yes goes to NextStepScreen | M8.6 | 🔲 |
-| M8.8 | Dashboard nudge | "Continue →" chip on cards with recent goal activity; tap → NextStepScreen | M8.6 | 🔲 |
-| M8.9 | Remove rest/archive prompt | Delete `_ArchivePromptSheet`, `_checkArchivePrompts()`, `getCardsNeedingArchivePrompt()`; keep swipe-to-defer | — | 🔲 |
-| M8.10 | Analyze & test | `flutter analyze` clean; integration tests updated; manual testing checklist passes | All above | 🔲 |
+| M8.1 | Data model changes | `completedAt` column added to cards table; `completeCard()` and `getCompletedCards()` wired through repo → provider | — | ✅ |
+| M8.2 | Card detail bottom sheet | Tap card → sheet with Start / What's next / Edit / Complete; Start opens timer | M8.1 | ✅ |
+| M8.3 | Edit card | Inline editing of goal + action labels from the detail sheet | M8.2 | ✅ |
+| M8.4 | Completion celebration | "Complete" in sheet → full-screen warm moment → card archived with `completedAt` | M8.1, M8.2 | ✅ |
+| M8.5 | Past Days: Completed section | Completed cards shown in Past Days, distinct from daily-rollover archives | M8.1, M8.4 | ✅ |
+| M8.6 | NextStepScreen | New screen: goal context + action input + AI button + Start → creates card and starts timer | M8.1 | ✅ |
+| M8.7 | Continuation prompt (post-timer) | After "Done" on timer → "Ready for the next tiny step?" → Yes goes to NextStepScreen | M8.6 | ✅ |
+| M8.8 | Dashboard nudge | "Continue →" chip on cards with recent goal activity; tap → NextStepScreen | M8.6 | ✅ |
+| M8.9 | Remove rest/archive prompt | Delete `_ArchivePromptSheet`, `_checkArchivePrompts()`, `getCardsNeedingArchivePrompt()`; keep swipe-to-defer | — | ✅ |
+| M8.10 | Analyze & test | `flutter analyze` clean; integration tests updated; manual testing checklist passes | All above | ✅ |
 
 ---
 
@@ -156,4 +156,4 @@ The milestones have some parallelism, but the recommended sequence for a single 
 
 | Date | Milestone | Notes |
 |---|---|---|
-| | | |
+| 2026-04-06 | M8.1–M8.10 | All milestones implemented and committed in a single session |
