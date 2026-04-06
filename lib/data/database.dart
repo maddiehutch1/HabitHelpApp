@@ -25,7 +25,7 @@ Future<Database> getDatabase() async {
   final path = _testDbPath ?? join(await getDatabasesPath(), 'microdeck.db');
   _db = await openDatabase(
     path,
-    version: 5,
+    version: 6,
     onCreate: (db, version) async {
       await db.execute('''
         CREATE TABLE cards (
@@ -64,6 +64,7 @@ Future<Database> getDatabase() async {
           completedAt INTEGER,
           baseDurationSeconds INTEGER NOT NULL,
           extraTimeSeconds INTEGER DEFAULT 0,
+          isPartial INTEGER NOT NULL DEFAULT 0,
           FOREIGN KEY (cardId) REFERENCES cards (id) ON DELETE CASCADE
         )
       ''');
@@ -102,12 +103,22 @@ Future<Database> getDatabase() async {
             completedAt INTEGER,
             baseDurationSeconds INTEGER NOT NULL,
             extraTimeSeconds INTEGER DEFAULT 0,
+            isPartial INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (cardId) REFERENCES cards (id) ON DELETE CASCADE
           )
         ''');
       }
       if (oldVersion < 5) {
         await db.execute('ALTER TABLE cards ADD COLUMN completedAt INTEGER');
+      }
+      if (oldVersion < 6) {
+        try {
+          await db.execute(
+            'ALTER TABLE sessions ADD COLUMN isPartial INTEGER NOT NULL DEFAULT 0',
+          );
+        } catch (_) {
+          // Column already exists on devices that ran the old v5 migration — safe to ignore
+        }
       }
     },
   );

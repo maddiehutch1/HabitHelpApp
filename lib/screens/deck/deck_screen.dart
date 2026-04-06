@@ -398,10 +398,6 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textMuted,
                 side: const BorderSide(color: AppColors.surfaceHigh),
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.sm,
-                  horizontal: AppSpacing.md,
-                ),
               ),
             ),
           ),
@@ -413,10 +409,6 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
               onPressed: _openPastDays,
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.textFaint,
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.xs,
-                  horizontal: AppSpacing.sm,
-                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -873,7 +865,7 @@ class _AddMethodSheet extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => Navigator.of(context).pop(_AddMethod.manual),
               icon: const Icon(Icons.edit_outlined, size: 20),
-              label: const Text('Type it'),
+              label: const Text('Use keyboard'),
               style: buttonStyle,
             ),
           ),

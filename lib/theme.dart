@@ -118,7 +118,7 @@ abstract final class AppTheme {
           foregroundColor: AppColors.background,
           disabledBackgroundColor: AppColors.surfaceHigh,
           disabledForegroundColor: AppColors.textFaint,
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -128,8 +128,18 @@ abstract final class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.textMuted,
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
           textStyle: AppTextStyles.buttonMuted,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: AppTextStyles.button,
+          side: const BorderSide(color: AppColors.border),
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
