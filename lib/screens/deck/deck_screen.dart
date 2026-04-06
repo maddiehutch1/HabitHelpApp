@@ -708,7 +708,7 @@ class _AddMethodSheet extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => Navigator.of(context).pop(_AddMethod.manual),
               icon: const Icon(Icons.edit_outlined, size: 20),
-              label: const Text('Type it'),
+              label: const Text('Use keyboard'),
               style: buttonStyle,
             ),
           ),
