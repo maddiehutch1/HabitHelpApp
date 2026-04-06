@@ -8,6 +8,7 @@ class CardModel {
     this.goalLabel,
     this.isArchived = false,
     this.archivedDate,
+    this.completedAt,
   });
 
   final String id;
@@ -18,6 +19,7 @@ class CardModel {
   final int createdAt;
   final bool isArchived;
   final int? archivedDate;
+  final int? completedAt;
 
   String get durationLabel {
     final minutes = durationSeconds ~/ 60;
@@ -34,6 +36,7 @@ class CardModel {
       'createdAt': createdAt,
       'isArchived': isArchived ? 1 : 0,
       'archivedDate': archivedDate,
+      'completedAt': completedAt,
     };
   }
 
@@ -47,6 +50,7 @@ class CardModel {
       createdAt: map['createdAt'] as int,
       isArchived: (map['isArchived'] as int? ?? 0) == 1,
       archivedDate: map['archivedDate'] as int?,
+      completedAt: map['completedAt'] as int?,
     );
   }
 }

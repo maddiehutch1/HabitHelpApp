@@ -29,6 +29,9 @@ class _TimerScreenState extends State<TimerScreen>
   Timer? _fadeTimer;
   bool _isRunning = true;
   bool _isCompleting = false;
+  bool _isOvertime = false;
+  int _overtimeSeconds = 0;
+  Timer? _overtimeTicker;
   late final String _sessionId;
   late final int _startedAt;
 
@@ -62,6 +65,7 @@ class _TimerScreenState extends State<TimerScreen>
   void dispose() {
     _ticker?.cancel();
     _fadeTimer?.cancel();
+    _overtimeTicker?.cancel();
     _timerOpacityController.dispose();
     WakelockPlus.disable();
     WidgetsBinding.instance.removeObserver(this);
@@ -96,9 +100,20 @@ class _TimerScreenState extends State<TimerScreen>
         } else {
           _ticker?.cancel();
           _isRunning = false;
-          _handleComplete();
+          _enterOvertimeMode();
         }
       });
+    });
+  }
+
+  void _enterOvertimeMode() {
+    _fadeTimer?.cancel();
+    _timerOpacityController.reverse();
+    HapticFeedback.mediumImpact();
+    setState(() => _isOvertime = true);
+    _overtimeTicker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() => _overtimeSeconds++);
     });
   }
 
@@ -147,7 +162,6 @@ class _TimerScreenState extends State<TimerScreen>
     await _saveSession(isPartial: false, elapsedSeconds: elapsed);
 
     await HapticFeedback.mediumImpact();
-
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       fadeRoute(
@@ -161,9 +175,43 @@ class _TimerScreenState extends State<TimerScreen>
     );
   }
 
+  Future<void> _handleOvertimeAction({required bool doNextTask}) async {
+    if (_isCompleting) return;
+    _isCompleting = true;
+    _overtimeTicker?.cancel();
+    _fadeTimer?.cancel();
+
+    await _saveSession(
+      isPartial: false,
+      elapsedSeconds: widget.card.durationSeconds,
+      extraTimeSeconds: _overtimeSeconds,
+    );
+
+    if (!mounted) return;
+    if (doNextTask) {
+      // Navigate to CelebrationScreen which owns the post-completion flow
+      Navigator.of(context).pushAndRemoveUntil(
+        fadeRoute(
+          CelebrationScreen(
+            card: widget.card,
+            elapsedSeconds: widget.card.durationSeconds + _overtimeSeconds,
+            extraTimeSeconds: _overtimeSeconds,
+          ),
+        ),
+        (route) => false,
+      );
+    } else {
+      // I'm finished — go straight to deck
+      Navigator.of(
+        context,
+      ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
+    }
+  }
+
   Future<void> _saveSession({
     required bool isPartial,
     required int elapsedSeconds,
+    int extraTimeSeconds = 0,
   }) async {
     try {
       final db = await getDatabase();
@@ -173,7 +221,7 @@ class _TimerScreenState extends State<TimerScreen>
         startedAt: _startedAt,
         completedAt: _startedAt + (elapsedSeconds * 1000),
         baseDurationSeconds: widget.card.durationSeconds,
-        extraTimeSeconds: 0,
+        extraTimeSeconds: extraTimeSeconds,
         isPartial: isPartial,
       );
       await db.insert('sessions', session.toMap());
@@ -191,16 +239,18 @@ class _TimerScreenState extends State<TimerScreen>
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false, // Buttons are the only exits
+      canPop: false,
       child: Scaffold(
         body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(child: _buildTimerBody()),
-              _buildActionButtons(),
-              const SizedBox(height: AppSpacing.lg),
-            ],
-          ),
+          child: _isOvertime
+              ? _buildOvertimeBody()
+              : Column(
+                  children: [
+                    Expanded(child: _buildTimerBody()),
+                    _buildActionButtons(),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                ),
         ),
       ),
     );
@@ -248,6 +298,78 @@ class _TimerScreenState extends State<TimerScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Overtime layout: centered column, all content grouped together.
+  Widget _buildOvertimeBody() {
+    const buttonPadding = EdgeInsets.symmetric(horizontal: 24, vertical: 14);
+    const buttonTextStyle = AppTextStyles.button;
+    const buttonShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(12)),
+    );
+
+    return Align(
+      alignment: const Alignment(0, -0.15),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Card label
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Text(
+                widget.card.actionLabel,
+                textAlign: TextAlign.center,
+                style: AppTextStyles.timerLabel,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            // Count-up timer
+            Semantics(
+              label: 'Extra time: +${_formatTime(_overtimeSeconds)}',
+              child: Text(
+                '+${_formatTime(_overtimeSeconds)}',
+                style: AppTextStyles.timerDisplay,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            // I'm finished
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => _handleOvertimeAction(doNextTask: false),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textMuted,
+                  side: const BorderSide(color: AppColors.border),
+                  padding: buttonPadding,
+                  textStyle: buttonTextStyle,
+                  shape: buttonShape,
+                ),
+                child: const Text("I'm finished"),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            // Do next task
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _isCompleting
+                    ? null
+                    : () => _handleOvertimeAction(doNextTask: true),
+                style: FilledButton.styleFrom(
+                  padding: buttonPadding,
+                  textStyle: buttonTextStyle,
+                ),
+                child: const Text('Do next task'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

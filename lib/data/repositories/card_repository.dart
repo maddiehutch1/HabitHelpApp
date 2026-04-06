@@ -147,33 +147,69 @@ class CardRepository {
     return (result.first['count'] as int? ?? 0);
   }
 
-  /// Returns non-archived cards that have been deferred 3+ times in the past 7 days.
-  Future<List<CardModel>> getCardsNeedingArchivePrompt() async {
+  /// Marks a card as completed by setting completedAt and isArchived.
+  Future<void> completeCard(String id) async {
     final db = await getDatabase();
-    final sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
-    final since = DateTime.now().millisecondsSinceEpoch - sevenDaysMs;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db.update(
+      'cards',
+      {'completedAt': now, 'isArchived': 1},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    cardRepoLog.info('completeCard id=$id → completedAt=$now, isArchived=1');
+  }
+
+  /// Returns cards that have been explicitly completed (completedAt IS NOT NULL).
+  Future<List<CardModel>> getCompletedCards() async {
+    final db = await getDatabase();
+    final rows = await db.query(
+      'cards',
+      where: 'completedAt IS NOT NULL',
+      orderBy: 'completedAt DESC',
+    );
+    final cards = rows.map(CardModel.fromMap).toList();
+    cardRepoLog.fine('getCompletedCards → ${cards.length} completed cards');
+    return cards;
+  }
+
+  /// Updates a card's goal and/or action labels.
+  Future<void> updateCard(
+    String id, {
+    String? goalLabel,
+    String? actionLabel,
+  }) async {
+    final db = await getDatabase();
+    final updates = <String, Object?>{};
+    if (goalLabel != null) updates['goalLabel'] = goalLabel;
+    if (actionLabel != null) updates['actionLabel'] = actionLabel;
+    if (updates.isEmpty) return;
+    await db.update('cards', updates, where: 'id = ?', whereArgs: [id]);
+    cardRepoLog.info('updateCard id=$id updates=$updates');
+  }
+
+  /// Returns goal labels that have sessions completed in the last [days] days.
+  Future<Set<String>> getGoalLabelsWithRecentSessions({int days = 7}) async {
+    final db = await getDatabase();
+    final since =
+        DateTime.now().millisecondsSinceEpoch - (days * 24 * 60 * 60 * 1000);
     final rows = await db.rawQuery(
       '''
-      SELECT c.* FROM cards c
-      INNER JOIN (
-        SELECT cardId, COUNT(*) as deferCount
-        FROM deferrals
-        WHERE deferredAt >= ?
-        GROUP BY cardId
-        HAVING deferCount >= 3
-      ) d ON c.id = d.cardId
-      WHERE c.isArchived = 0
+      SELECT DISTINCT c.goalLabel FROM cards c
+      INNER JOIN sessions s ON c.id = s.cardId
+      WHERE s.completedAt >= ? AND c.goalLabel IS NOT NULL AND c.goalLabel != ''
     ''',
       [since],
     );
-    final candidates = rows.map(CardModel.fromMap).toList();
-    if (candidates.isNotEmpty) {
-      cardRepoLog.info(
-        'getCardsNeedingArchivePrompt → ${candidates.length} candidate(s): '
-        '${candidates.map((c) => c.id).join(', ')}',
-      );
-    }
-    return candidates;
+    final labels = rows
+        .map((r) => r['goalLabel'] as String?)
+        .where((l) => l != null && l.isNotEmpty)
+        .cast<String>()
+        .toSet();
+    cardRepoLog.fine(
+      'getGoalLabelsWithRecentSessions(days=$days) → ${labels.length} labels',
+    );
+    return labels;
   }
 
   Future<int> getActiveCardCount() async {

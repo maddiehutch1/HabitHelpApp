@@ -18,6 +18,7 @@ class PastDaysScreen extends ConsumerStatefulWidget {
 class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
   final _repo = CardRepository();
   List<CardModel> _archivedCards = [];
+  List<CardModel> _completedCards = [];
   bool _loading = true;
   bool _navigating = false;
 
@@ -30,8 +31,10 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
   Future<void> _loadArchivedCards() async {
     try {
       final cards = await _repo.getArchivedByDate();
+      final completed = await _repo.getCompletedCards();
       setState(() {
         _archivedCards = cards;
+        _completedCards = completed;
         _loading = false;
       });
     } catch (_) {
@@ -197,7 +200,7 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
                         color: AppColors.textMuted,
                       ),
                     )
-                  : _archivedCards.isEmpty
+                  : _archivedCards.isEmpty && _completedCards.isEmpty
                   ? Center(
                       child: Padding(
                         padding: const EdgeInsets.all(AppSpacing.page),
@@ -214,6 +217,24 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
                         vertical: AppSpacing.xs,
                       ),
                       children: [
+                        if (_completedCards.isNotEmpty) ...[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.sm,
+                              AppSpacing.sm,
+                              AppSpacing.sm,
+                              AppSpacing.xs,
+                            ),
+                            child: Text(
+                              'Completed',
+                              style: AppTextStyles.label.copyWith(
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                          for (final card in _completedCards)
+                            _CompletedCardTile(card: card),
+                        ],
                         for (final entry in groupedCards.entries) ...[
                           Padding(
                             padding: const EdgeInsets.fromLTRB(
@@ -317,6 +338,61 @@ class _PastDayCardTile extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Completed Card Tile ──────────────────────────────────────────────────────
+
+class _CompletedCardTile extends StatelessWidget {
+  const _CompletedCardTile({required this.card});
+
+  final CardModel card;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    card.goalLabel ?? card.actionLabel,
+                    style: AppTextStyles.cardAction,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (card.goalLabel != null) ...[
+                    const SizedBox(height: 4),
+                    Text(card.actionLabel, style: AppTextStyles.cardGoal),
+                  ],
+                  const SizedBox(height: 4),
+                  Text(
+                    DateFormat.MMMd().format(
+                      DateTime.fromMillisecondsSinceEpoch(card.completedAt!),
+                    ),
+                    style: AppTextStyles.badge,
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.check_circle_outline,
+              color: AppColors.textFaint,
+              size: 20,
+            ),
+          ],
         ),
       ),
     );

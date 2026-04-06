@@ -7,6 +7,7 @@ import '../../data/models/card_model.dart';
 import '../../routes.dart';
 import '../../services/notification_service.dart';
 import '../../theme.dart';
+import '../create_card/next_step_screen.dart';
 import '../deck/deck_screen.dart';
 
 class CelebrationScreen extends StatefulWidget {
@@ -54,9 +55,42 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
     await _maybeRequestNotificationPermission();
     await _maybeShowExplainer();
     if (!mounted) return;
-    Navigator.of(
-      context,
-    ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
+
+    // Show continuation prompt if card has a goal label
+    if (widget.card.goalLabel != null && widget.card.goalLabel!.isNotEmpty) {
+      _showContinuationPrompt();
+    } else {
+      Navigator.of(
+        context,
+      ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
+    }
+  }
+
+  void _showContinuationPrompt() {
+    showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isDismissible: false,
+      builder: (_) => const _ContinuationPromptSheet(),
+    ).then((continueNext) {
+      if (!mounted) return;
+      if (continueNext == true) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) =>
+                NextStepScreen(goalLabel: widget.card.goalLabel!),
+          ),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(
+          context,
+        ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
+      }
+    });
   }
 
   Future<void> _maybeRequestNotificationPermission() async {
@@ -117,7 +151,8 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
                 ),
               ),
               // Main content
-              Center(
+              Align(
+                alignment: const Alignment(0, -0.2),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.page,
@@ -137,24 +172,32 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      // Keep going (grayed, future feature)
+                      // I'm finished — go straight home
                       SizedBox(
                         width: double.infinity,
-                        child: Tooltip(
-                          message: 'Coming soon',
-                          child: TextButton(
-                            onPressed: null,
-                            child: const Text('Keep going'),
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(context)
+                              .pushAndRemoveUntil(
+                                fadeRoute(const DeckScreen()),
+                                (route) => false,
+                              ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.textMuted,
+                            side: const BorderSide(color: AppColors.border),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
+                          child: const Text("I'm finished"),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      // Done
+                      // Do next task — runs full post-completion flow
                       SizedBox(
                         width: double.infinity,
                         child: FilledButton(
                           onPressed: _handleDone,
-                          child: const Text('Done'),
+                          child: const Text('Do next task'),
                         ),
                       ),
                     ],
@@ -197,6 +240,53 @@ class _ExplainerSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xs),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Continuation Prompt ──────────────────────────────────────────────────────
+
+class _ContinuationPromptSheet extends StatelessWidget {
+  const _ContinuationPromptSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.page,
+        AppSpacing.md,
+        AppSpacing.page,
+        AppSpacing.md + bottomInset,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Nice work.', style: AppTextStyles.headline),
+          const SizedBox(height: AppSpacing.xs),
+          const Text(
+            'Ready for the next tiny step?',
+            style: AppTextStyles.bodyMuted,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text("Yes, let's continue"),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Not now'),
+            ),
+          ),
         ],
       ),
     );
