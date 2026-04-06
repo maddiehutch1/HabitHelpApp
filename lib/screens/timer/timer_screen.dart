@@ -23,7 +23,7 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen>
-    with TickerProviderStateMixin, WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late int _secondsRemaining;
   Timer? _ticker;
   Timer? _fadeTimer;
@@ -31,10 +31,6 @@ class _TimerScreenState extends State<TimerScreen>
   bool _isCompleting = false;
   late final String _sessionId;
   late final int _startedAt;
-
-  // Pulse dot animation
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulseOpacity;
 
   // Timer digit fade animation (1.0 → 0.1 after 5s, back to 1.0 at 10s remaining)
   late final AnimationController _timerOpacityController;
@@ -49,15 +45,6 @@ class _TimerScreenState extends State<TimerScreen>
 
     WakelockPlus.enable();
     WidgetsBinding.instance.addObserver(this);
-
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    )..repeat(reverse: true);
-
-    _pulseOpacity = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
 
     _timerOpacityController = AnimationController(
       vsync: this,
@@ -75,7 +62,6 @@ class _TimerScreenState extends State<TimerScreen>
   void dispose() {
     _ticker?.cancel();
     _fadeTimer?.cancel();
-    _pulseController.dispose();
     _timerOpacityController.dispose();
     WakelockPlus.disable();
     WidgetsBinding.instance.removeObserver(this);
@@ -119,16 +105,14 @@ class _TimerScreenState extends State<TimerScreen>
   void _pause() {
     _fadeTimer?.cancel();
     _ticker?.cancel();
-    _timerOpacityController.reverse(); // Reset to full opacity while paused
-    _pulseController.stop();
+    _timerOpacityController.reverse();
     if (mounted) setState(() => _isRunning = false);
   }
 
   void _resume() {
-    _pulseController.repeat(reverse: true);
     setState(() => _isRunning = true);
     _startTicker();
-    _scheduleFade(); // Fresh 5s delay on resume
+    _scheduleFade();
   }
 
   void _togglePause() {
@@ -158,7 +142,6 @@ class _TimerScreenState extends State<TimerScreen>
     _isCompleting = true;
     _fadeTimer?.cancel();
     _ticker?.cancel();
-    _pulseController.stop();
 
     final elapsed = _elapsedSeconds;
     await _saveSession(isPartial: false, elapsedSeconds: elapsed);
@@ -253,33 +236,16 @@ class _TimerScreenState extends State<TimerScreen>
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
-          // Pulse dot + pause button — thematically paired
-          Column(
-            children: [
-              FadeTransition(
-                opacity: _pulseOpacity,
-                child: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: const BoxDecoration(
-                    color: AppColors.textPrimary,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              OutlinedButton.icon(
-                onPressed: _togglePause,
-                icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow, size: 18),
-                label: Text(_isRunning ? 'Pause' : 'Resume'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textMuted,
-                  side: const BorderSide(color: AppColors.border),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                ),
-              ),
-            ],
+          // Pause/Resume
+          OutlinedButton.icon(
+            onPressed: _togglePause,
+            icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow, size: 18),
+            label: Text(_isRunning ? 'Pause' : 'Resume'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.textMuted,
+              side: const BorderSide(color: AppColors.border),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
           ),
         ],
       ),
@@ -303,6 +269,9 @@ class _TimerScreenState extends State<TimerScreen>
               side: const BorderSide(color: AppColors.border),
               padding: buttonPadding,
               textStyle: buttonTextStyle,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: const Text('Exit Early'),
           ),
