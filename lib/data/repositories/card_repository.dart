@@ -110,6 +110,29 @@ class CardRepository {
     cardRepoLog.info('restoreCard id=$id → sortOrder=$maxSort');
   }
 
+  /// Restores a completed card back to the active deck by clearing completedAt
+  /// and isArchived, and assigning a new sort order.
+  Future<void> restoreCompletedCard(String id) async {
+    final db = await getDatabase();
+    final rows = await db.query(
+      'cards',
+      columns: ['sortOrder'],
+      where: 'isArchived = 0',
+      orderBy: 'sortOrder DESC',
+      limit: 1,
+    );
+    final maxSort = rows.isEmpty ? 0 : (rows.first['sortOrder'] as int) + 1;
+    await db.update(
+      'cards',
+      {'completedAt': null, 'isArchived': 0, 'sortOrder': maxSort},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    cardRepoLog.info(
+      'restoreCompletedCard id=$id → completedAt=null, isArchived=0, sortOrder=$maxSort',
+    );
+  }
+
   /// Moves card to bottom of deck and records a deferral.
   Future<void> deferCard(String id) async {
     final db = await getDatabase();

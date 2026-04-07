@@ -79,7 +79,8 @@ class _VoiceAISuggestionsScreenState
       final now = DateTime.now().millisecondsSinceEpoch + i;
       final card = CardModel(
         id: now.toString(),
-        actionLabel: titles[i],
+        actionLabel: 'Get started',
+        goalLabel: titles[i],
         durationSeconds: 120,
         sortOrder: 0,
         createdAt: now,

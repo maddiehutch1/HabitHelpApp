@@ -78,6 +78,74 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
     }
   }
 
+  Future<void> _restoreCompletedCard(CardModel card) async {
+    try {
+      await _repo.restoreCompletedCard(card.id);
+      await _loadArchivedCards();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '"${card.goalLabel ?? card.actionLabel}" restored to deck',
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not restore card.')),
+        );
+      }
+    }
+  }
+
+  void _showRestoreSheet(CardModel card) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(AppSpacing.page),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Restore to deck?', style: AppTextStyles.headline),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              card.goalLabel ?? card.actionLabel,
+              style: AppTextStyles.bodyMuted,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _restoreCompletedCard(card);
+                },
+                child: const Text('Restore'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showMoveToTodaySheet(CardModel card) {
     showModalBottomSheet<void>(
       context: context,
@@ -233,7 +301,10 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
                             ),
                           ),
                           for (final card in _completedCards)
-                            _CompletedCardTile(card: card),
+                            _CompletedCardTile(
+                              card: card,
+                              onLongPress: () => _showRestoreSheet(card),
+                            ),
                         ],
                         for (final entry in groupedCards.entries) ...[
                           Padding(
@@ -350,49 +421,64 @@ class _PastDayCardTile extends StatelessWidget {
 // ─── Completed Card Tile ──────────────────────────────────────────────────────
 
 class _CompletedCardTile extends StatelessWidget {
-  const _CompletedCardTile({required this.card});
+  const _CompletedCardTile({required this.card, required this.onLongPress});
 
   final CardModel card;
+  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Opacity(
-        opacity: 0.4,
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.sm),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      card.goalLabel ?? card.actionLabel,
-                      style: AppTextStyles.cardAction,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (card.goalLabel != null) ...[
-                      const SizedBox(height: 4),
-                      Text(card.actionLabel, style: AppTextStyles.cardGoal),
-                    ],
-                    const SizedBox(height: 4),
-                    Text(
-                      DateFormat.MMMd().format(
-                        DateTime.fromMillisecondsSinceEpoch(card.completedAt!),
-                      ),
-                      style: AppTextStyles.badge,
-                    ),
-                  ],
-                ),
+      child: Semantics(
+        button: true,
+        label:
+            '${card.goalLabel ?? card.actionLabel}. Long press to restore.',
+        child: InkWell(
+          onLongPress: onLongPress,
+          borderRadius: BorderRadius.circular(14),
+          child: Opacity(
+            opacity: 0.4,
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
               ),
-            ],
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          card.goalLabel ?? card.actionLabel,
+                          style: AppTextStyles.cardAction,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        if (card.goalLabel != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            card.actionLabel,
+                            style: AppTextStyles.cardGoal,
+                          ),
+                        ],
+                        const SizedBox(height: 4),
+                        Text(
+                          DateFormat.MMMd().format(
+                            DateTime.fromMillisecondsSinceEpoch(
+                              card.completedAt!,
+                            ),
+                          ),
+                          style: AppTextStyles.badge,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

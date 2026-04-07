@@ -56,7 +56,7 @@ class CardDetailSheet extends StatelessWidget {
             ),
             child: Text(card.durationLabel, style: AppTextStyles.badge),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           SizedBox(
             width: double.infinity,
             child: FilledButton(
@@ -81,7 +81,7 @@ class CardDetailSheet extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

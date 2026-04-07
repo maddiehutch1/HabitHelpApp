@@ -314,7 +314,7 @@ class _VoiceInputSheetState extends State<VoiceInputSheet>
               flex: 2,
               child: FilledButton(
                 onPressed: hasText ? _createCards : null,
-                child: const Text('Create cards from this'),
+                child: const Text('Create cards'),
               ),
             ),
           ],
