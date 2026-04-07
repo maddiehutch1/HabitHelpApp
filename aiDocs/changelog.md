@@ -209,6 +209,18 @@ This is meant to be a CONCISE list of changes to track as we develop this projec
 
 ---
 
+## Phase 12 — UI Polish
+*Apr 7, 2026 · Plan: [ai/roadmaps/2026-04-07-phase-12-ui-polish.md](../ai/roadmaps/2026-04-07-phase-12-ui-polish.md)*
+
+- `lib/screens/deck/completion_screen.dart` — Main text now shows `actionLabel` (the tiny step) instead of `goalLabel`; primary button renamed to "Go Back to Home"; added optional `onNextStep` callback + "Plan my next step →" `OutlinedButton` (shown only when card has a goal)
+- `lib/screens/deck/deck_screen.dart` — Both `CompletionScreen` usages updated to pass `onNextStep` that completes the card then opens `NextStepScreen`; removed `_recentGoalLabels` state and `getGoalLabelsWithRecentSessions()` call; removed `showContinueNudge`/`onContinue` from `_CardTile`
+- `lib/screens/create_card/voice_ai_suggestions_screen.dart` — Edit/confirm icon size bumped from 18 → 22; confirm (checkmark) icon uses `textPrimary` color when editing so "tap to save" is visually distinct from the pencil
+- `lib/screens/deck/widgets/card_detail_sheet.dart` — "What's next?" and Edit/Complete secondary actions changed from `TextButton` to `OutlinedButton` for consistent visual weight without competing with the primary Start button
+- Also removed legacy "Just One mode" dead code (`_enterJustOneMode`, `_exitJustOneMode`, `_buildJustOneMode`, related state) from `deck_screen.dart` — feature was removed after UX testing
+- `flutter analyze` — no issues
+
+---
+
 ## Extra — App Icon (not tied to a roadmap phase)
 *Feb 23, 2026*
 

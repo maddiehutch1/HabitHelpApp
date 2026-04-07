@@ -243,8 +243,10 @@ class _VoiceAISuggestionsScreenState
               },
               icon: Icon(
                 item.editing ? Icons.check : Icons.edit_outlined,
-                color: AppColors.textFaint,
-                size: 18,
+                color: item.editing
+                    ? AppColors.textPrimary
+                    : AppColors.textFaint,
+                size: 22,
               ),
               constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             ),
