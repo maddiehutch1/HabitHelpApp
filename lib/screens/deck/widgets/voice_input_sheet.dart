@@ -199,13 +199,15 @@ class _VoiceInputSheetState extends State<VoiceInputSheet>
         AppSpacing.page,
         AppSpacing.md + bottomInset + safePadding,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_isRecording) _buildRecordingView(),
-          if (_hasRecorded) _buildTranscriptionView(),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_isRecording) _buildRecordingView(),
+            if (_hasRecorded) _buildTranscriptionView(),
+          ],
+        ),
       ),
     );
   }

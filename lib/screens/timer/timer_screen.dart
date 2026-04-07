@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
@@ -39,6 +40,7 @@ class _TimerScreenState extends State<TimerScreen>
   // Timer digit fade animation (1.0 → 0.1 after 5s, back to 1.0 at 10s remaining)
   late final AnimationController _timerOpacityController;
   late final Animation<double> _timerOpacity;
+  late final ConfettiController _confettiController;
 
   @override
   void initState() {
@@ -58,6 +60,10 @@ class _TimerScreenState extends State<TimerScreen>
       CurvedAnimation(parent: _timerOpacityController, curve: Curves.easeInOut),
     );
 
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 2),
+    );
+
     _startTicker();
     _scheduleFade();
   }
@@ -68,6 +74,7 @@ class _TimerScreenState extends State<TimerScreen>
     _fadeTimer?.cancel();
     _overtimeTicker?.cancel();
     _timerOpacityController.dispose();
+    _confettiController.dispose();
     WakelockPlus.disable();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -112,6 +119,7 @@ class _TimerScreenState extends State<TimerScreen>
     _timerOpacityController.reverse();
     HapticFeedback.mediumImpact();
     setState(() => _isOvertime = true);
+    _confettiController.play();
     _overtimeTicker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() => _overtimeSeconds++);
@@ -190,8 +198,8 @@ class _TimerScreenState extends State<TimerScreen>
 
     if (!mounted) return;
     if (doNextTask) {
-      final goal = widget.card.goalLabel;
-      if (goal != null && goal.isNotEmpty) {
+      final goal = (widget.card.goalLabel != null && widget.card.goalLabel!.isNotEmpty) ? widget.card.goalLabel! : widget.card.actionLabel;
+      if (goal.isNotEmpty) {
         Navigator.of(context).pushAndRemoveUntil(
           fadeRoute(NextStepScreen(goalLabel: goal)),
           (route) => false,
@@ -244,15 +252,39 @@ class _TimerScreenState extends State<TimerScreen>
       canPop: false,
       child: Scaffold(
         body: SafeArea(
-          child: _isOvertime
-              ? _buildOvertimeBody()
-              : Column(
-                  children: [
-                    Expanded(child: _buildTimerBody()),
-                    _buildActionButtons(),
-                    const SizedBox(height: AppSpacing.lg),
-                  ],
+          child: Stack(
+            children: [
+              if (_isOvertime)
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: ConfettiWidget(
+                    confettiController: _confettiController,
+                    blastDirectionality: BlastDirectionality.explosive,
+                    shouldLoop: false,
+                    numberOfParticles: 30,
+                    maxBlastForce: 20,
+                    minBlastForce: 8,
+                    emissionFrequency: 0.05,
+                    colors: const [
+                      Color(0xFFFFD700),
+                      Color(0xFFFF6B6B),
+                      Color(0xFF4ECDC4),
+                      Color(0xFF95E1D3),
+                      Color(0xFFF38181),
+                    ],
+                  ),
                 ),
+              _isOvertime
+                  ? _buildOvertimeBody()
+                  : Column(
+                      children: [
+                        Expanded(child: _buildTimerBody()),
+                        _buildActionButtons(),
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
+                    ),
+            ],
+          ),
         ),
       ),
     );

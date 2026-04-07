@@ -79,8 +79,8 @@ class _VoiceAISuggestionsScreenState
       final now = DateTime.now().millisecondsSinceEpoch + i;
       final card = CardModel(
         id: now.toString(),
-        actionLabel: 'Get started',
-        goalLabel: titles[i],
+        actionLabel: titles[i],
+        goalLabel: '',
         durationSeconds: 120,
         sortOrder: 0,
         createdAt: now,
@@ -152,7 +152,7 @@ class _VoiceAISuggestionsScreenState
                   label: 'Add selected tasks',
                   child: FilledButton(
                     onPressed: _hasSelection ? _onAddSelected : null,
-                    child: const Text('Add selected'),
+                    child: const Text('Next Step'),
                   ),
                 ),
               ),
