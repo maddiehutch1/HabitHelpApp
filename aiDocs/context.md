@@ -50,9 +50,9 @@ Core philosophy: **one card, two minutes, no judgment.**
 
 ## Current Focus
 
-Phases 0–9 are complete. Phase roadmaps are archived in `ai/roadmaps/complete/`. The high-level project plan (`ai/roadmaps/2026-02-19-high-level-project-plan.md`) stays at the roadmaps root as a persistent reference.
+Phases 0–10 are complete. Phase roadmaps are archived in `ai/roadmaps/complete/`. The high-level project plan (`ai/roadmaps/2026-02-19-high-level-project-plan.md`) stays at the roadmaps root as a persistent reference.
 
-**Phase 9 (Sheet & AI Polish)** restructured card detail sheet for clear hierarchy (Start prominent, Edit/Complete compact), added sparkle icon + gold accent color to all AI buttons. Built on Phase 8's momentum & dashboard redesign.
+**Phase 10 (UX Fixes)** addressed three usability issues from user testing: enlarged the Continue nudge tap target on deck cards, made overtime "Do next task" skip the celebration screen, and replaced the step-by-step voice card creation with batch saving.
 
 **CLI Testing Infrastructure** is complete. Run `.\\scripts\\test.ps1` (Windows) or `bash scripts/test.sh` (Mac/Linux). See `TEST_README.md` and `ai/roadmaps/complete/2026-02-21-extra-cli-testing.md`.
 
