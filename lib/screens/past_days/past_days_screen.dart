@@ -189,7 +189,7 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.xs),
-                  const Text('Past Days', style: AppTextStyles.screenTitle),
+                  const Text('Archive', style: AppTextStyles.screenTitle),
                 ],
               ),
             ),
@@ -205,7 +205,7 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(AppSpacing.page),
                         child: Text(
-                          'No past days yet. Cards will appear here each day when you enable Fresh Start mode.',
+                          'Your archive is empty. Completed and scheduled cards will appear here.',
                           textAlign: TextAlign.center,
                           style: AppTextStyles.bodyMuted,
                         ),
@@ -292,50 +292,53 @@ class _PastDayCardTile extends StatelessWidget {
           onTap: onTap,
           onLongPress: onLongPress,
           borderRadius: BorderRadius.circular(14),
-          child: Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        card.actionLabel,
-                        style: AppTextStyles.cardAction,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (card.goalLabel != null && card.goalLabel!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text(
-                            card.goalLabel!,
-                            style: AppTextStyles.cardGoal,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+          child: Opacity(
+            opacity: 0.4,
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          card.actionLabel,
+                          style: AppTextStyles.cardAction,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                    ],
+                        if (card.goalLabel != null && card.goalLabel!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Text(
+                              card.goalLabel!,
+                              style: AppTextStyles.cardGoal,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+                  const SizedBox(width: AppSpacing.xs),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceHigh,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(card.durationLabel, style: AppTextStyles.badge),
                   ),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceHigh,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(card.durationLabel, style: AppTextStyles.badge),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -355,44 +358,42 @@ class _CompletedCardTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.sm),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    card.goalLabel ?? card.actionLabel,
-                    style: AppTextStyles.cardAction,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (card.goalLabel != null) ...[
-                    const SizedBox(height: 4),
-                    Text(card.actionLabel, style: AppTextStyles.cardGoal),
-                  ],
-                  const SizedBox(height: 4),
-                  Text(
-                    DateFormat.MMMd().format(
-                      DateTime.fromMillisecondsSinceEpoch(card.completedAt!),
+      child: Opacity(
+        opacity: 0.4,
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      card.goalLabel ?? card.actionLabel,
+                      style: AppTextStyles.cardAction,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    style: AppTextStyles.badge,
-                  ),
-                ],
+                    if (card.goalLabel != null) ...[
+                      const SizedBox(height: 4),
+                      Text(card.actionLabel, style: AppTextStyles.cardGoal),
+                    ],
+                    const SizedBox(height: 4),
+                    Text(
+                      DateFormat.MMMd().format(
+                        DateTime.fromMillisecondsSinceEpoch(card.completedAt!),
+                      ),
+                      style: AppTextStyles.badge,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const Icon(
-              Icons.check_circle_outline,
-              color: AppColors.textFaint,
-              size: 20,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -35,7 +35,7 @@ class CardDetailSheet extends StatelessWidget {
         AppSpacing.page,
         AppSpacing.md,
         AppSpacing.page,
-        AppSpacing.md + bottomInset,
+        AppSpacing.md + (bottomInset > 24.0 ? bottomInset : 24.0),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

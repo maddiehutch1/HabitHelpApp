@@ -365,7 +365,7 @@ class _TimerScreenState extends State<TimerScreen>
                   padding: buttonPadding,
                   textStyle: buttonTextStyle,
                 ),
-                child: const Text('Continue'),
+                child: const Text('Do next task'),
               ),
             ),
           ],
