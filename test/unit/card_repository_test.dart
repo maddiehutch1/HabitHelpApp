@@ -173,52 +173,6 @@ void main() {
     });
   });
 
-  group('CardRepository — archive prompt', () {
-    test(
-      'getCardsNeedingArchivePrompt returns cards deferred 3+ times in 7 days',
-      () async {
-        final card = _makeCard();
-        await repo.insertCard(card);
-
-        await repo.deferCard(card.id);
-        await repo.deferCard(card.id);
-        await repo.deferCard(card.id);
-
-        final candidates = await repo.getCardsNeedingArchivePrompt();
-        expect(candidates.length, 1);
-        expect(candidates.first.id, card.id);
-      },
-    );
-
-    test(
-      'getCardsNeedingArchivePrompt ignores cards deferred fewer than 3 times',
-      () async {
-        final card = _makeCard();
-        await repo.insertCard(card);
-        await repo.deferCard(card.id);
-        await repo.deferCard(card.id);
-
-        final candidates = await repo.getCardsNeedingArchivePrompt();
-        expect(candidates, isEmpty);
-      },
-    );
-
-    test(
-      'getCardsNeedingArchivePrompt excludes already-archived cards',
-      () async {
-        final card = _makeCard();
-        await repo.insertCard(card);
-        await repo.deferCard(card.id);
-        await repo.deferCard(card.id);
-        await repo.deferCard(card.id);
-        await repo.archiveCard(card.id);
-
-        final candidates = await repo.getCardsNeedingArchivePrompt();
-        expect(candidates, isEmpty);
-      },
-    );
-  });
-
   group('CardRepository — active count', () {
     test('getActiveCardCount returns 0 when no cards exist', () async {
       expect(await repo.getActiveCardCount(), 0);

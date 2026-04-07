@@ -113,3 +113,5 @@ Each phase has a detailed plan (implementation steps) and a roadmap (milestone t
 | Phase 2 — Polish & Stability ✅ | [phase-2-polish](complete/2026-02-19-phase-2-polish.md) | [roadmap-phase-2](complete/2026-02-19-roadmap-phase-2-polish.md) |
 | Phase 3 — v1 Feature Build ✅ | [phase-3-v1-features](complete/2026-02-19-phase-3-v1-features.md) | [roadmap-phase-3](complete/2026-02-19-roadmap-phase-3-v1-features.md) |
 | Phase 4 — Future Planning | [phase-4-future-planning](2026-02-19-phase-4-future-planning.md) | [roadmap-phase-4](2026-02-19-roadmap-phase-4-future-planning.md) |
+| Phase 8 — Momentum & Dashboard ✅ | [phase-8-momentum-dashboard](complete/2026-04-06-phase-8-momentum-dashboard.md) | [roadmap-phase-8](complete/2026-04-06-roadmap-phase-8-momentum-dashboard.md) |
+| Phase 9 — Sheet & AI Polish ✅ | [phase-9-sheet-ai-polish](complete/2026-04-06-phase-9-sheet-and-ai-polish.md) | [roadmap-phase-9](complete/2026-04-06-roadmap-phase-9-sheet-and-ai-polish.md) |

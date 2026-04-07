@@ -156,6 +156,35 @@ This is meant to be a CONCISE list of changes to track as we develop this projec
 
 ---
 
+## Phase 8 — Momentum Capture & Dashboard Redesign (code complete)
+*Apr 6, 2026 · Plan: [ai/roadmaps/2026-04-06-phase-8-momentum-dashboard.md](../ai/roadmaps/2026-04-06-phase-8-momentum-dashboard.md)*
+
+- `lib/data/database.dart` — bumped to version 5; `onUpgrade` handles v4→v5 (`completedAt INTEGER` added to `cards`)
+- `lib/data/models/card_model.dart` — added `completedAt` nullable int field; updated `toMap`/`fromMap`
+- `lib/data/repositories/card_repository.dart` — added `completeCard()`, `getCompletedCards()`, `updateCard()`, `getGoalLabelsWithRecentSessions()`; removed `getCardsNeedingArchivePrompt()`
+- `lib/providers/cards_provider.dart` — wired new repo methods; removed `getCardsNeedingArchivePrompt()`
+- `lib/screens/deck/widgets/card_detail_sheet.dart` (new) — bottom sheet with Start / What's next / Edit / Complete actions
+- `lib/screens/deck/completion_screen.dart` (new) — full-screen celebration with animated checkmark, warm copy, delayed "Back to deck" button
+- `lib/screens/create_card/next_step_screen.dart` (new) — goal context + action input + AI assistance + Start button; creates card and starts timer
+- `lib/screens/deck/deck_screen.dart` — tap card now opens detail bottom sheet instead of timer; added `_openCardDetail()`, `_showEditSheet()`, `_CardAction` enum; wired completion flow and continue-next; added `_recentGoalLabels` state + "Continue →" nudge on card tiles; removed `_ArchivePromptSheet` and `_checkArchivePrompts()`
+- `lib/screens/timer/timer_screen.dart` — after "Done", shows continuation prompt ("Ready for the next tiny step?") leading to NextStepScreen; prompt only shown for cards with goalLabel
+- `lib/screens/past_days/past_days_screen.dart` — added "Completed" section above date-grouped archives with `_CompletedCardTile`
+- `test/unit/card_repository_test.dart` — removed obsolete archive prompt tests
+- `flutter analyze` — no issues
+
+---
+
+## Phase 9 — Card Detail Sheet Cleanup & AI Button Polish
+*Apr 6, 2026 · Plan: [ai/roadmaps/2026-04-06-phase-9-sheet-and-ai-polish.md](../ai/roadmaps/2026-04-06-phase-9-sheet-and-ai-polish.md)*
+
+- `lib/theme.dart` — added `AppColors.aiAccent` (muted gold `#D4A855`) for AI button styling
+- `lib/screens/deck/widgets/card_detail_sheet.dart` — restructured layout: Start + What's next stacked as primary/secondary; Edit + Complete collapsed into compact horizontal icon row with `textFaint` styling
+- `lib/screens/create_card/next_step_screen.dart` — "Help me think of one" and "Make this smaller" buttons changed to `TextButton.icon` with sparkle icon (`Icons.auto_awesome`) and `aiAccent` color
+- `lib/screens/create_card/create_card_action_screen.dart` — "I'm stuck – show ideas" and "Make this smaller" buttons changed to `TextButton.icon` with sparkle icon and `aiAccent` color
+- `flutter analyze` — no issues
+
+---
+
 ## Extra — App Icon (not tied to a roadmap phase)
 *Feb 23, 2026*
 

@@ -1,5 +1,5 @@
 # Micro-Deck — Project Context
-*Last updated: March 2026*
+*Last updated: April 2026*
 
 ---
 
@@ -30,11 +30,14 @@ Core philosophy: **one card, two minutes, no judgment.**
 - **CreateCardGoalScreen** — "What feels big and difficult right now?"
 - **CreateCardActionScreen** — "What's one tiny step you could take first?"; AI suggestions ("I'm stuck", "Make this smaller")
 - **CreateCardConfirmScreen** — "Ready for your tiny start?"; [Start now] / [Save for later]
-- **Timer** — full-screen countdown, pulsing dot, haptic on completion; [Done] / [Keep going]
-- **Deck View** — card list, tap to start timer; FAB opens voice/type sheet; Fresh Start mode support
+- **Timer** — full-screen countdown, pulsing dot, haptic on completion; [Done] / [Keep going]; continuation prompt after Done
+- **Deck View** — card list, tap opens detail bottom sheet (Start / What's next / Edit / Complete); FAB opens voice/type sheet; Fresh Start mode support; "Continue →" nudge on cards with recent goal activity
+- **Card Detail Sheet** — bottom sheet with Start (primary), What's next (secondary), Edit + Complete (compact icon row)
+- **NextStepScreen** — define next tiny step for a goal with AI help; creates card and starts timer
+- **CompletionScreen** — warm full-screen celebration when completing a goal
 - **VoiceAISuggestionsScreen** — AI-extracted tasks from voice recording; checkable, editable, multi-card queue
-- **Settings** — Fresh Start toggle, AI Suggestions toggle, archived (resting) cards
-- **Past Days** — cards archived by daily rollover, grouped by date, restorable
+- **Settings** — Fresh Start toggle, AI Suggestions toggle
+- **Past Days** — cards archived by daily rollover, grouped by date, restorable; "Completed" section for finished goals
 
 ---
 
@@ -47,7 +50,9 @@ Core philosophy: **one card, two minutes, no judgment.**
 
 ## Current Focus
 
-Phases 0–7 are complete. Phase roadmaps are archived in `ai/roadmaps/complete/`. The high-level project plan (`ai/roadmaps/2026-02-19-high-level-project-plan.md`) stays at the roadmaps root as a persistent reference.
+Phases 0–9 are complete. Phase roadmaps are archived in `ai/roadmaps/complete/`. The high-level project plan (`ai/roadmaps/2026-02-19-high-level-project-plan.md`) stays at the roadmaps root as a persistent reference.
+
+**Phase 9 (Sheet & AI Polish)** restructured card detail sheet for clear hierarchy (Start prominent, Edit/Complete compact), added sparkle icon + gold accent color to all AI buttons. Built on Phase 8's momentum & dashboard redesign.
 
 **CLI Testing Infrastructure** is complete. Run `.\\scripts\\test.ps1` (Windows) or `bash scripts/test.sh` (Mac/Linux). See `TEST_README.md` and `ai/roadmaps/complete/2026-02-21-extra-cli-testing.md`.
 

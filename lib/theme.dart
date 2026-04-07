@@ -8,6 +8,7 @@ abstract final class AppColors {
   static const textMuted = Color(0xFF8A8580);
   static const textFaint = Color(0xFF4A4744);
   static const border = Color(0xFF2A2825);
+  static const aiAccent = Color(0xFFD4A855);
 }
 
 abstract final class AppSpacing {
@@ -118,7 +119,7 @@ abstract final class AppTheme {
           foregroundColor: AppColors.background,
           disabledBackgroundColor: AppColors.surfaceHigh,
           disabledForegroundColor: AppColors.textFaint,
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -128,8 +129,18 @@ abstract final class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.textMuted,
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
           textStyle: AppTextStyles.buttonMuted,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: AppTextStyles.button,
+          side: const BorderSide(color: AppColors.border),
         ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(

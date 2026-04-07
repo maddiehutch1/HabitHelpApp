@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/models/card_model.dart';
+import '../../providers/cards_provider.dart';
+import '../../routes.dart';
 import '../../services/ai_service.dart';
 import '../../theme.dart';
-import 'create_card_confirm_screen.dart';
+import '../timer/timer_screen.dart';
 
-class CreateCardActionScreen extends StatefulWidget {
-  const CreateCardActionScreen({
-    super.key,
-    required this.goal,
-    this.onCardSaved,
-  });
+class NextStepScreen extends ConsumerStatefulWidget {
+  const NextStepScreen({super.key, required this.goalLabel});
 
-  final String goal;
-  final VoidCallback? onCardSaved;
+  final String goalLabel;
 
   @override
-  State<CreateCardActionScreen> createState() => _CreateCardActionScreenState();
+  ConsumerState<NextStepScreen> createState() => _NextStepScreenState();
 }
 
-class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
+class _NextStepScreenState extends ConsumerState<NextStepScreen> {
   final _controller = TextEditingController();
   bool _loadingSuggestions = false;
   List<String>? _suggestions;
@@ -31,29 +30,37 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
     super.dispose();
   }
 
-  void _advance() {
+  Future<void> _start() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CreateCardConfirmScreen(
-          goal: widget.goal,
-          action: text,
-          onCardSaved: widget.onCardSaved,
-        ),
-      ),
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final card = CardModel(
+      id: now.toString(),
+      goalLabel: widget.goalLabel,
+      actionLabel: text,
+      durationSeconds: 120,
+      sortOrder: 0,
+      createdAt: now,
+    );
+
+    await ref.read(cardsProvider.notifier).addCard(card);
+
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      fadeRoute(TimerScreen(card: card)),
     );
   }
 
   Future<void> _showAISuggestions() async {
-    // Check/request consent
     final hasConsent = await AIService.requestConsent(context);
     if (!hasConsent) return;
 
     setState(() => _loadingSuggestions = true);
 
     try {
-      final suggestions = await AIService.generateFirstSteps(widget.goal);
+      final suggestions =
+          await AIService.generateFirstSteps(widget.goalLabel);
       if (mounted) {
         setState(() {
           _suggestions = suggestions;
@@ -134,17 +141,17 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                     children: [
                       const SizedBox(height: AppSpacing.lg),
                       Text(
-                        widget.goal,
+                        widget.goalLabel,
                         style: AppTextStyles.contextLabel,
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       const Text(
-                        "What's one tiny step you could take first?",
+                        "What's the next tiny step?",
                         style: AppTextStyles.headline,
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       const Text(
-                        'Think in terms of 2 minutes or less. Smaller is better.',
+                        'Think in terms of 2 minutes or less.',
                         style: AppTextStyles.bodyMuted,
                       ),
                       const SizedBox(height: AppSpacing.lg),
@@ -156,9 +163,9 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                           color: AppColors.textPrimary,
                         ),
                         textInputAction: TextInputAction.done,
-                        onSubmitted: (_) => _advance(),
+                        onSubmitted: (_) => _start(),
                         decoration: const InputDecoration(
-                          hintText: 'e.g. Open the document',
+                          hintText: 'e.g. Write the first paragraph',
                         ),
                         onChanged: (_) => setState(() {}),
                       ),
@@ -168,7 +175,7 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                           child: OutlinedButton.icon(
                             onPressed: _showAISuggestions,
                             icon: const Icon(Icons.auto_awesome, size: 16),
-                            label: const Text("I'm stuck – show ideas"),
+                            label: const Text('Help me think of one'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.aiAccent,
                               side: BorderSide(color: AppColors.aiAccent.withOpacity(0.5)),
@@ -244,12 +251,11 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                 width: double.infinity,
                 child: Semantics(
                   button: true,
-                  label: "Let's go",
+                  label: 'Start',
                   child: FilledButton(
-                    onPressed: _controller.text.trim().isEmpty
-                        ? null
-                        : _advance,
-                    child: const Text("Let's go →"),
+                    onPressed:
+                        _controller.text.trim().isEmpty ? null : _start,
+                    child: const Text('Start'),
                   ),
                 ),
               ),
