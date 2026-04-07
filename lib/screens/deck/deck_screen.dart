@@ -27,8 +27,6 @@ class DeckScreen extends ConsumerStatefulWidget {
 class _DeckScreenState extends ConsumerState<DeckScreen>
     with WidgetsBindingObserver {
   bool _navigating = false;
-  bool _justOneMode = false;
-  int _justOneIndex = 0;
   bool _isFreshStartMode = false;
   Set<String> _recentGoalLabels = {};
 
@@ -122,16 +120,6 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
           context,
         ).showSnackBar(const SnackBar(content: Text('Could not load cards.')));
       }
-    }
-  }
-
-  Future<void> _openTimer(CardModel card) async {
-    if (_navigating) return;
-    setState(() => _navigating = true);
-    await Navigator.of(context).push(fadeRoute(TimerScreen(card: card)));
-    if (mounted) {
-      setState(() => _navigating = false);
-      await _onLoad();
     }
   }
 
@@ -360,17 +348,6 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
     }
   }
 
-  void _enterJustOneMode() {
-    final cards = ref.read(cardsProvider);
-    if (cards.isEmpty) return;
-    setState(() {
-      _justOneMode = true;
-      _justOneIndex = 0;
-    });
-  }
-
-  void _exitJustOneMode() => setState(() => _justOneMode = false);
-
   Future<void> _openPastDays() async {
     await Navigator.of(
       context,
@@ -427,18 +404,16 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
 
     return Scaffold(
       body: SafeArea(
-        child: _justOneMode ? _buildJustOneMode(cards) : _buildDeckView(cards),
+        child: _buildDeckView(cards),
       ),
-      floatingActionButton: _justOneMode
-          ? null
-          : Semantics(
-              label: 'Add card',
-              button: true,
-              child: FloatingActionButton(
-                onPressed: _showAddMethodSheet,
-                child: const Icon(Icons.add),
-              ),
-            ),
+      floatingActionButton: Semantics(
+        label: 'Add card',
+        button: true,
+        child: FloatingActionButton(
+          onPressed: _showAddMethodSheet,
+          child: const Icon(Icons.add),
+        ),
+      ),
     );
   }
 
@@ -579,121 +554,6 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
         ),
         if (_isFreshStartMode) _buildFreshStartActions(),
       ],
-    );
-  }
-
-  Widget _buildJustOneMode(List<CardModel> cards) {
-    if (cards.isEmpty || _justOneIndex >= cards.length) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("That's all of them.", style: AppTextStyles.bodyMuted),
-            const SizedBox(height: AppSpacing.md),
-            TextButton(
-              onPressed: _exitJustOneMode,
-              child: const Text('Back to deck'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final card = cards[_justOneIndex];
-    return GestureDetector(
-      onTap: _exitJustOneMode,
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.page,
-              AppSpacing.md,
-              AppSpacing.page,
-              AppSpacing.xs,
-            ),
-            child: Row(
-              children: [
-                const Spacer(),
-                Semantics(
-                  label: 'Exit Just One mode',
-                  button: true,
-                  child: IconButton(
-                    onPressed: _exitJustOneMode,
-                    icon: const Icon(Icons.close, color: AppColors.textFaint),
-                    constraints: const BoxConstraints(
-                      minWidth: 44,
-                      minHeight: 44,
-                    ),
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(flex: 2),
-          GestureDetector(
-            onTap: () {}, // Absorb taps on the card itself
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(card.actionLabel, style: AppTextStyles.cardAction),
-                    if (card.goalLabel != null &&
-                        card.goalLabel!.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(card.goalLabel!, style: AppTextStyles.cardGoal),
-                    ],
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(card.durationLabel, style: AppTextStyles.badge),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
-            child: Row(
-              children: [
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () {
-                      _exitJustOneMode();
-                      _openTimer(card);
-                    },
-                    child: const Text('Start'),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: TextButton(
-                    onPressed: () {
-                      ref.read(cardsProvider.notifier).deferCard(card.id);
-                      final newCards = ref.read(cardsProvider);
-                      if (_justOneIndex >= newCards.length) {
-                        _exitJustOneMode();
-                      } else {
-                        setState(() {});
-                      }
-                    },
-                    child: const Text('Not today'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(flex: 3),
-        ],
-      ),
     );
   }
 
