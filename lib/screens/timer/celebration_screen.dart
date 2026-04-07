@@ -79,11 +79,8 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
       if (!mounted) return;
       if (continueNext == true) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) =>
-                NextStepScreen(goalLabel: widget.card.goalLabel!),
-          ),
-          (route) => false,
+          fadeRoute(NextStepScreen(goalLabel: widget.card.goalLabel!)),
+          (route) => route.isFirst,
         );
       } else {
         Navigator.of(
