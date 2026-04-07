@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/models/card_model.dart';
+import '../../providers/cards_provider.dart';
 import '../../theme.dart';
 import 'create_card_goal_screen.dart';
 
 /// Displays up to 3 AI-extracted task titles from a voice transcription.
 ///
 /// The user picks which suggestions to keep (all checked by default), can
-/// inline-edit any title, then taps [Add selected] to route each chosen task
-/// through [CreateCardGoalScreen] one at a time. After all selected tasks are
-/// processed the navigator pops back to the deck.
+/// inline-edit any title, then taps [Add selected] to batch-create cards for
+/// all checked items at once.
 ///
 /// If the user wants to skip AI parsing entirely they can tap
 /// "Add manually instead" to go straight to [CreateCardGoalScreen] with the
 /// raw transcription prefilled.
-class VoiceAISuggestionsScreen extends StatefulWidget {
+class VoiceAISuggestionsScreen extends ConsumerStatefulWidget {
   const VoiceAISuggestionsScreen({
     super.key,
     required this.suggestions,
@@ -27,7 +29,7 @@ class VoiceAISuggestionsScreen extends StatefulWidget {
   final String transcription;
 
   @override
-  State<VoiceAISuggestionsScreen> createState() =>
+  ConsumerState<VoiceAISuggestionsScreen> createState() =>
       _VoiceAISuggestionsScreenState();
 }
 
@@ -39,12 +41,10 @@ class _SuggestionItem {
   bool editing;
 }
 
-class _VoiceAISuggestionsScreenState extends State<VoiceAISuggestionsScreen> {
+class _VoiceAISuggestionsScreenState
+    extends ConsumerState<VoiceAISuggestionsScreen> {
   late final List<_SuggestionItem> _items;
   late final List<TextEditingController> _editControllers;
-
-  /// Remaining tasks to process. Populated when [_onAddSelected] is called.
-  final List<String> _queue = [];
 
   @override
   void initState() {
@@ -65,39 +65,30 @@ class _VoiceAISuggestionsScreenState extends State<VoiceAISuggestionsScreen> {
 
   bool get _hasSelection => _items.any((item) => item.checked);
 
-  void _onAddSelected() {
-    _queue
-      ..clear()
-      ..addAll(
-        _items
-            .where((item) => item.checked)
-            .map((item) => item.title.trim())
-            .where((t) => t.isNotEmpty),
-      );
-    _processNextTask();
-  }
+  Future<void> _onAddSelected() async {
+    final titles = _items
+        .where((item) => item.checked)
+        .map((item) => item.title.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+    if (titles.isEmpty) return;
 
-  /// Processes the next task in [_queue].
-  ///
-  /// Called immediately after [_onAddSelected] and again via the
-  /// [CreateCardGoalScreen.onCardSaved] callback each time a card is saved
-  /// via "Save for later" in the confirm screen.
-  void _processNextTask() {
-    if (!mounted) return;
-    if (_queue.isEmpty) {
-      // All tasks processed — return to deck (first route in the stack).
-      Navigator.of(context).popUntil((route) => route.isFirst);
-      return;
+    final notifier = ref.read(cardsProvider.notifier);
+
+    for (var i = 0; i < titles.length; i++) {
+      final now = DateTime.now().millisecondsSinceEpoch + i;
+      final card = CardModel(
+        id: now.toString(),
+        actionLabel: titles[i],
+        durationSeconds: 120,
+        sortOrder: 0,
+        createdAt: now,
+      );
+      await notifier.addCard(card);
     }
-    final task = _queue.removeAt(0);
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CreateCardGoalScreen(
-          prefilledGoal: task,
-          onCardSaved: _processNextTask,
-        ),
-      ),
-    );
+
+    if (!mounted) return;
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   void _goManual() {

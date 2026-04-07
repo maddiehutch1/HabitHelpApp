@@ -185,6 +185,17 @@ This is meant to be a CONCISE list of changes to track as we develop this projec
 
 ---
 
+## Phase 10 — UX Fixes
+*Apr 6, 2026 · Plan: [ai/roadmaps/2026-04-06-phase-10-ux-fixes.md](../ai/roadmaps/2026-04-06-phase-10-ux-fixes.md)*
+
+- `lib/screens/deck/deck_screen.dart` — Continue nudge enlarged: `GestureDetector` spans full tile width with `HitTestBehavior.opaque`, text bumped from 12px to 14px, 12px vertical padding for ~44px tap target
+- `lib/screens/timer/timer_screen.dart` — Overtime "Do next task" now skips `CelebrationScreen`; navigates directly to `NextStepScreen` (if card has goal) or `DeckScreen` (if not)
+- `lib/screens/create_card/voice_ai_suggestions_screen.dart` — Converted to `ConsumerStatefulWidget`; "Add selected" now batch-creates cards via `cardsProvider.notifier.addCard()` instead of stepping through `CreateCardGoalScreen` per task; removed `_queue` and `_processNextTask()`
+- `lib/screens/deck/deck_screen.dart` — Swipe-to-defer replaced with swipe-to-complete; triggers `CompletionScreen` flow via `confirmDismiss`
+- `flutter analyze` — no issues
+
+---
+
 ## Extra — App Icon (not tied to a roadmap phase)
 *Feb 23, 2026*
 

@@ -530,12 +530,28 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Text(
-                          'Send to Back',
+                          'Complete',
                           style: AppTextStyles.bodyMuted,
                         ),
                       ),
-                      onDismissed: (_) {
-                        ref.read(cardsProvider.notifier).deferCard(card.id);
+                      confirmDismiss: (_) async {
+                        await Navigator.of(context).push(
+                          fadeRoute(CompletionScreen(
+                            card: card,
+                            onComplete: () async {
+                              await ref
+                                  .read(cardsProvider.notifier)
+                                  .completeCard(card.id);
+                              if (mounted) {
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  fadeRoute(const DeckScreen()),
+                                  (route) => false,
+                                );
+                              }
+                            },
+                          )),
+                        );
+                        return false;
                       },
                       child: _CardTile(
                         card: card,
@@ -765,14 +781,19 @@ class _CardTile extends StatelessWidget {
                           ),
                         ),
                       if (showContinueNudge && onContinue != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: GestureDetector(
-                            onTap: onContinue,
-                            child: Text(
-                              'Continue \u2192',
-                              style: AppTextStyles.badge.copyWith(
-                                color: AppColors.textMuted,
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: onContinue,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Text(
+                                'Continue \u2192',
+                                style: AppTextStyles.badge.copyWith(
+                                  fontSize: 14,
+                                  color: AppColors.textMuted,
+                                ),
                               ),
                             ),
                           ),
