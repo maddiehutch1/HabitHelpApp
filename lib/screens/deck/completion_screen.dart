@@ -10,10 +10,16 @@ class CompletionScreen extends StatefulWidget {
     super.key,
     required this.card,
     required this.onComplete,
+    this.onNextStep,
   });
 
   final CardModel card;
   final VoidCallback onComplete;
+
+  /// Optional callback for "Plan my next step". When provided and the card
+  /// has a goalLabel, a secondary OutlinedButton is shown below the primary
+  /// action.
+  final VoidCallback? onNextStep;
 
   @override
   State<CompletionScreen> createState() => _CompletionScreenState();
@@ -77,7 +83,9 @@ class _CompletionScreenState extends State<CompletionScreen>
 
   @override
   Widget build(BuildContext context) {
-    final goalText = widget.card.goalLabel ?? widget.card.actionLabel;
+    final hasNextStep = widget.card.goalLabel != null &&
+        widget.card.goalLabel!.isNotEmpty &&
+        widget.onNextStep != null;
 
     return Scaffold(
       body: SafeArea(
@@ -121,7 +129,7 @@ class _CompletionScreenState extends State<CompletionScreen>
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     Text(
-                      goalText,
+                      widget.card.actionLabel,
                       style: AppTextStyles.completion,
                       textAlign: TextAlign.center,
                     ),
@@ -133,12 +141,33 @@ class _CompletionScreenState extends State<CompletionScreen>
                     const SizedBox(height: AppSpacing.lg),
                     FadeTransition(
                       opacity: _buttonOpacity,
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: widget.onComplete,
-                          child: const Text('I\'m finished'),
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: widget.onComplete,
+                              child: const Text('Go Back to Home'),
+                            ),
+                          ),
+                          if (hasNextStep) ...[
+                            const SizedBox(height: AppSpacing.xs),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton(
+                                onPressed: widget.onNextStep,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.textMuted,
+                                  side: const BorderSide(
+                                    color: AppColors.surfaceHigh,
+                                  ),
+                                ),
+                                child: const Text('Plan my next step \u2192'),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ],

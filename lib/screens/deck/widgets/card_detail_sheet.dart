@@ -25,10 +25,9 @@ class CardDetailSheet extends StatelessWidget {
     final safePadding = bottomInset > 24.0 ? bottomInset : 24.0;
     final hasGoal = card.goalLabel != null && card.goalLabel!.isNotEmpty;
 
-    final compactTextButtonStyle = TextButton.styleFrom(
+    final secondaryOutlinedStyle = OutlinedButton.styleFrom(
       foregroundColor: AppColors.textMuted,
-      textStyle: const TextStyle(fontSize: 14),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      side: const BorderSide(color: AppColors.surfaceHigh),
     );
 
     return Padding(
@@ -68,11 +67,9 @@ class CardDetailSheet extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             SizedBox(
               width: double.infinity,
-              child: TextButton(
+              child: OutlinedButton(
                 onPressed: onContinue,
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.textPrimary.withOpacity(0.65),
-                ),
+                style: secondaryOutlinedStyle,
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -84,22 +81,25 @@ class CardDetailSheet extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextButton.icon(
-                onPressed: onEdit,
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text('Edit'),
-                style: compactTextButtonStyle,
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onEdit,
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('Edit'),
+                  style: secondaryOutlinedStyle,
+                ),
               ),
-              const SizedBox(width: 24),
-              TextButton.icon(
-                onPressed: onComplete,
-                icon: const Icon(Icons.check),
-                label: const Text('Complete'),
-                style: compactTextButtonStyle,
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onComplete,
+                  icon: const Icon(Icons.check, size: 18),
+                  label: const Text('Complete'),
+                  style: secondaryOutlinedStyle,
+                ),
               ),
             ],
           ),
