@@ -191,13 +191,11 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                       if (_suggestions != null)
                         Padding(
                           padding: const EdgeInsets.only(top: AppSpacing.sm),
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
+                          child: Column(
                             children: _suggestions!.map((suggestion) {
-                              return ActionChip(
-                                label: Text(suggestion),
-                                onPressed: () {
+                              return _SuggestionTile(
+                                text: suggestion,
+                                onTap: () {
                                   setState(() {
                                     _controller.text = suggestion;
                                     _suggestions = null;
@@ -228,9 +226,9 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                       if (_smallerSuggestion != null)
                         Padding(
                           padding: const EdgeInsets.only(top: AppSpacing.sm),
-                          child: ActionChip(
-                            label: Text(_smallerSuggestion!),
-                            onPressed: () {
+                          child: _SuggestionTile(
+                            text: _smallerSuggestion!,
+                            onTap: () {
                               setState(() {
                                 _controller.text = _smallerSuggestion!;
                                 _smallerSuggestion = null;
@@ -260,6 +258,32 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
               const SizedBox(height: AppSpacing.lg),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SuggestionTile extends StatelessWidget {
+  const _SuggestionTile({required this.text, required this.onTap});
+
+  final String text;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceHigh,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(text, style: AppTextStyles.body),
         ),
       ),
     );
