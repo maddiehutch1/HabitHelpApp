@@ -150,7 +150,7 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                       const SizedBox(height: AppSpacing.lg),
                       TextField(
                         controller: _controller,
-                        autofocus: true,
+                        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                         style: const TextStyle(
                           fontSize: 18,
                           color: AppColors.textPrimary,
@@ -271,17 +271,32 @@ class _SuggestionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceHigh,
-            borderRadius: BorderRadius.circular(10),
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: AppColors.surfaceHigh,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(color: AppColors.aiAccent.withOpacity(0.3)),
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(text, style: AppTextStyles.body),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.arrow_upward,
+                  size: 16,
+                  color: AppColors.aiAccent.withOpacity(0.7),
+                ),
+              ],
+            ),
           ),
-          child: Text(text, style: AppTextStyles.body),
         ),
       ),
     );

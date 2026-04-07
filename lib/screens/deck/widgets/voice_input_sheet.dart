@@ -189,13 +189,15 @@ class _VoiceInputSheetState extends State<VoiceInputSheet>
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+    final safePadding = bottomPadding > 24.0 ? bottomPadding : 24.0;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.page,
         AppSpacing.md,
         AppSpacing.page,
-        AppSpacing.md + bottomInset,
+        AppSpacing.md + bottomInset + safePadding,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -282,6 +284,7 @@ class _VoiceInputSheetState extends State<VoiceInputSheet>
         const SizedBox(height: AppSpacing.md),
         TextField(
           controller: _transcriptionController,
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           maxLines: 8,
           style: const TextStyle(color: AppColors.textPrimary),
           decoration: InputDecoration(

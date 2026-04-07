@@ -30,7 +30,6 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
   bool _justOneMode = false;
   int _justOneIndex = 0;
   bool _isFreshStartMode = false;
-  int _archivedCardCount = 0;
   Set<String> _recentGoalLabels = {};
 
   @override
@@ -69,13 +68,9 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
     try {
       final prefs = SharedPreferencesAsync();
       final isFreshStart = await prefs.getBool('isFreshStartMode') ?? false;
-      final archivedCount = await ref
-          .read(cardsProvider.notifier)
-          .getArchivedCardCount();
       if (mounted) {
         setState(() {
           _isFreshStartMode = isFreshStart;
-          _archivedCardCount = archivedCount;
         });
       }
     } catch (_) {
@@ -214,12 +209,13 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
           builder: (ctx, setSheetState) {
             final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
             final bottomPadding = MediaQuery.of(ctx).viewPadding.bottom;
+            final safePadding = bottomPadding > 24.0 ? bottomPadding : 24.0;
             return Padding(
               padding: EdgeInsets.fromLTRB(
                 AppSpacing.page,
                 AppSpacing.md,
                 AppSpacing.page,
-                AppSpacing.md + bottomInset + bottomPadding,
+                AppSpacing.md + bottomInset + safePadding,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -229,6 +225,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                   const SizedBox(height: AppSpacing.sm),
                   TextField(
                     controller: actionController,
+                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     style: AppTextStyles.body,
                     decoration: const InputDecoration(
                       labelText: 'Action label',
@@ -238,6 +235,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                   const SizedBox(height: AppSpacing.sm),
                   TextField(
                     controller: goalController,
+                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     style: AppTextStyles.body,
                     decoration: const InputDecoration(
                       labelText: 'Goal label',
@@ -403,34 +401,17 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
           ),
           const SizedBox(height: AppSpacing.sm),
           Semantics(
-            label: 'View past days',
+            label: 'View archive',
             button: true,
             child: TextButton(
               onPressed: _openPastDays,
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.textFaint,
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Past days'),
-                  if (_archivedCardCount > 0) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceHigh,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '$_archivedCardCount',
-                        style: AppTextStyles.badge.copyWith(fontSize: 11),
-                      ),
-                    ),
-                  ],
+                  Text('Archive'),
                 ],
               ),
             ),
@@ -485,24 +466,23 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                 ),
               ],
               const Spacer(),
-              if (cards.isNotEmpty)
-                Semantics(
-                  label: 'Just One mode',
-                  button: true,
-                  child: IconButton(
-                    onPressed: _enterJustOneMode,
-                    icon: const Icon(
-                      Icons.filter_1_outlined,
-                      color: AppColors.textFaint,
-                      size: 20,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 44,
-                      minHeight: 44,
-                    ),
-                    padding: EdgeInsets.zero,
+              Semantics(
+                label: 'Archive',
+                button: true,
+                child: IconButton(
+                  onPressed: _openPastDays,
+                  icon: const Icon(
+                    Icons.archive_outlined,
+                    color: AppColors.textFaint,
+                    size: 20,
                   ),
+                  constraints: const BoxConstraints(
+                    minWidth: 44,
+                    minHeight: 44,
+                  ),
+                  padding: EdgeInsets.zero,
                 ),
+              ),
               Semantics(
                 label: 'Settings',
                 button: true,
@@ -852,6 +832,7 @@ class _AddMethodSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    final safePadding = bottomInset > 24.0 ? bottomInset : 24.0;
     final buttonStyle = OutlinedButton.styleFrom(
       foregroundColor: AppColors.textMuted,
       side: const BorderSide(color: AppColors.surfaceHigh),
@@ -863,7 +844,7 @@ class _AddMethodSheet extends StatelessWidget {
         AppSpacing.page,
         AppSpacing.md,
         AppSpacing.page,
-        AppSpacing.md + bottomInset,
+        AppSpacing.md + safePadding,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
