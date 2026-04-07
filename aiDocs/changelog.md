@@ -174,6 +174,17 @@ This is meant to be a CONCISE list of changes to track as we develop this projec
 
 ---
 
+## Phase 9 — Card Detail Sheet Cleanup & AI Button Polish
+*Apr 6, 2026 · Plan: [ai/roadmaps/2026-04-06-phase-9-sheet-and-ai-polish.md](../ai/roadmaps/2026-04-06-phase-9-sheet-and-ai-polish.md)*
+
+- `lib/theme.dart` — added `AppColors.aiAccent` (muted gold `#D4A855`) for AI button styling
+- `lib/screens/deck/widgets/card_detail_sheet.dart` — restructured layout: Start + What's next stacked as primary/secondary; Edit + Complete collapsed into compact horizontal icon row with `textFaint` styling
+- `lib/screens/create_card/next_step_screen.dart` — "Help me think of one" and "Make this smaller" buttons changed to `TextButton.icon` with sparkle icon (`Icons.auto_awesome`) and `aiAccent` color
+- `lib/screens/create_card/create_card_action_screen.dart` — "I'm stuck – show ideas" and "Make this smaller" buttons changed to `TextButton.icon` with sparkle icon and `aiAccent` color
+- `flutter analyze` — no issues
+
+---
+
 ## Extra — App Icon (not tied to a roadmap phase)
 *Feb 23, 2026*
 

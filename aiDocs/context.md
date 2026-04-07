@@ -32,7 +32,7 @@ Core philosophy: **one card, two minutes, no judgment.**
 - **CreateCardConfirmScreen** — "Ready for your tiny start?"; [Start now] / [Save for later]
 - **Timer** — full-screen countdown, pulsing dot, haptic on completion; [Done] / [Keep going]; continuation prompt after Done
 - **Deck View** — card list, tap opens detail bottom sheet (Start / What's next / Edit / Complete); FAB opens voice/type sheet; Fresh Start mode support; "Continue →" nudge on cards with recent goal activity
-- **Card Detail Sheet** — bottom sheet with Start, What's next, Edit, Complete actions
+- **Card Detail Sheet** — bottom sheet with Start (primary), What's next (secondary), Edit + Complete (compact icon row)
 - **NextStepScreen** — define next tiny step for a goal with AI help; creates card and starts timer
 - **CompletionScreen** — warm full-screen celebration when completing a goal
 - **VoiceAISuggestionsScreen** — AI-extracted tasks from voice recording; checkable, editable, multi-card queue
@@ -50,9 +50,9 @@ Core philosophy: **one card, two minutes, no judgment.**
 
 ## Current Focus
 
-Phases 0–8 are complete. Phase roadmaps are archived in `ai/roadmaps/complete/`. The high-level project plan (`ai/roadmaps/2026-02-19-high-level-project-plan.md`) stays at the roadmaps root as a persistent reference.
+Phases 0–9 are complete. Phase roadmaps are archived in `ai/roadmaps/complete/`. The high-level project plan (`ai/roadmaps/2026-02-19-high-level-project-plan.md`) stays at the roadmaps root as a persistent reference.
 
-**Phase 8 (Momentum & Dashboard Redesign)** added: card detail bottom sheet, edit card, completion celebration, NextStepScreen, post-timer continuation prompt, dashboard "Continue" nudge. Archive/rest prompt removed. Database at version 5.
+**Phase 9 (Sheet & AI Polish)** restructured card detail sheet for clear hierarchy (Start prominent, Edit/Complete compact), added sparkle icon + gold accent color to all AI buttons. Built on Phase 8's momentum & dashboard redesign.
 
 **CLI Testing Infrastructure** is complete. Run `.\\scripts\\test.ps1` (Windows) or `bash scripts/test.sh` (Mac/Linux). See `TEST_README.md` and `ai/roadmaps/complete/2026-02-21-extra-cli-testing.md`.
 

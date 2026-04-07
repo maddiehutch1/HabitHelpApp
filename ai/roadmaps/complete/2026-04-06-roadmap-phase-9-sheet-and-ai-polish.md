@@ -1,8 +1,8 @@
 # Roadmap — Phase 9: Card Detail Sheet Cleanup & AI Button Polish
 *Created: April 6, 2026*
 *Detailed plan: [Phase 9 Plan](2026-04-06-phase-9-sheet-and-ai-polish.md)*
-*Previous: [Phase 8 — Momentum & Dashboard Redesign](complete/2026-04-06-roadmap-phase-8-momentum-dashboard.md)*
-*Status: Not started*
+*Previous: [Phase 8 — Momentum & Dashboard Redesign](2026-04-06-roadmap-phase-8-momentum-dashboard.md)*
+*Status: ✅ Complete*
 
 > **Avoid over-engineering, cruft, and legacy-compatibility features.**
 
@@ -18,10 +18,10 @@ Reduce visual clutter in the card detail bottom sheet and make AI buttons recogn
 
 | # | Milestone | Outcome | Depends On | Status |
 |---|---|---|---|---|
-| M9.1 | Add AI accent color | `AppColors.aiAccent` defined in `lib/theme.dart` | — | Not started |
-| M9.2 | Redesign card detail sheet | Start + What's next stacked; Edit + Complete in compact icon row | — | Not started |
-| M9.3 | Polish AI buttons | All 4 AI buttons show sparkle icon + accent color | M9.1 | Not started |
-| M9.4 | Verify | `flutter analyze` clean; visual check on device | All above | Not started |
+| M9.1 | Add AI accent color | `AppColors.aiAccent` defined in `lib/theme.dart` | — | ✅ |
+| M9.2 | Redesign card detail sheet | Start + What's next stacked; Edit + Complete in compact icon row | — | ✅ |
+| M9.3 | Polish AI buttons | All 4 AI buttons show sparkle icon + accent color | M9.1 | ✅ |
+| M9.4 | Verify | `flutter analyze` clean; visual check on device | All above | ✅ |
 
 ---
 
