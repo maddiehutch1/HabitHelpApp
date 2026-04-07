@@ -199,13 +199,15 @@ class _VoiceInputSheetState extends State<VoiceInputSheet>
         AppSpacing.page,
         AppSpacing.md + bottomInset + safePadding,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_isRecording) _buildRecordingView(),
-          if (_hasRecorded) _buildTranscriptionView(),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_isRecording) _buildRecordingView(),
+            if (_hasRecorded) _buildTranscriptionView(),
+          ],
+        ),
       ),
     );
   }
@@ -301,24 +303,23 @@ class _VoiceInputSheetState extends State<VoiceInputSheet>
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        Row(
-          children: [
-            Expanded(
-              child: TextButton(
-                onPressed: _discard,
-                child: const Text('Discard'),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: _discard,
+                  child: const Text('Discard'),
+                ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              flex: 2,
-              child: FilledButton(
-                onPressed: hasText ? _createCards : null,
-                child: const Text('Create cards'),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: FilledButton(
+                  onPressed: hasText ? _createCards : null,
+                  child: const Text('Create cards'),
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         const SizedBox(height: AppSpacing.xs),
       ],
     );

@@ -205,9 +205,10 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                 AppSpacing.page,
                 AppSpacing.md + bottomInset + safePadding,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('Edit card', style: AppTextStyles.sheetTitle),
                   const SizedBox(height: AppSpacing.sm),
@@ -249,7 +250,8 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                   ),
                 ],
               ),
-            );
+            ),
+          );
           },
         );
       },
@@ -378,7 +380,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
           ),
           const SizedBox(height: AppSpacing.sm),
           Semantics(
-            label: 'View archive',
+            label: 'View completed',
             button: true,
             child: TextButton(
               onPressed: _openPastDays,
@@ -388,7 +390,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Archive'),
+                  Text('Completed'),
                 ],
               ),
             ),
@@ -442,7 +444,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
               ],
               const Spacer(),
               Semantics(
-                label: 'Archive',
+                label: 'Completed',
                 button: true,
                 child: IconButton(
                   onPressed: _openPastDays,
@@ -531,22 +533,22 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                       child: _CardTile(
                         card: card,
                         onTap: () => _openCardDetail(card),
-                        showContinueNudge: card.goalLabel != null &&
-                            card.goalLabel!.isNotEmpty &&
-                            _recentGoalLabels.contains(card.goalLabel),
-                        onContinue: card.goalLabel != null &&
-                                card.goalLabel!.isNotEmpty
-                            ? () async {
-                                await Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => NextStepScreen(
-                                      goalLabel: card.goalLabel!,
-                                    ),
-                                  ),
-                                );
-                                if (mounted) await _onLoad();
-                              }
-                            : null,
+                        showContinueNudge: () {
+                          final goal = (card.goalLabel != null && card.goalLabel!.isNotEmpty) ? card.goalLabel! : card.actionLabel;
+                          return goal.isNotEmpty && _recentGoalLabels.contains(goal);
+                        }(),
+                        onContinue: () {
+                          final goal = (card.goalLabel != null && card.goalLabel!.isNotEmpty) ? card.goalLabel! : card.actionLabel;
+                          if (goal.isEmpty) return null;
+                          return () async {
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => NextStepScreen(goalLabel: goal),
+                              ),
+                            );
+                            if (mounted) await _onLoad();
+                          };
+                        }(),
                       ),
                     );
                   },
@@ -641,21 +643,19 @@ class _CardTile extends StatelessWidget {
                           ),
                         ),
                       if (showContinueNudge && onContinue != null)
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: onContinue,
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              child: Text(
-                                'Continue \u2192',
-                                style: AppTextStyles.badge.copyWith(
-                                  fontSize: 14,
-                                  color: AppColors.textMuted,
-                                ),
-                              ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 8),
+                          alignment: Alignment.centerLeft,
+                          child: OutlinedButton(
+                            onPressed: onContinue,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.textMuted,
+                              side: const BorderSide(color: AppColors.border),
+                              minimumSize: Size.zero,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
+                            child: const Text('Next Step \u2192', style: TextStyle(fontSize: 12)),
                           ),
                         ),
                     ],

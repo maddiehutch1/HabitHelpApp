@@ -26,7 +26,7 @@ class CardDetailSheet extends StatelessWidget {
     final hasGoal = card.goalLabel != null && card.goalLabel!.isNotEmpty;
 
     final compactTextButtonStyle = TextButton.styleFrom(
-      foregroundColor: AppColors.textFaint,
+      foregroundColor: AppColors.textMuted,
       textStyle: const TextStyle(fontSize: 14),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     );
@@ -70,6 +70,9 @@ class CardDetailSheet extends StatelessWidget {
               width: double.infinity,
               child: TextButton(
                 onPressed: onContinue,
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.textPrimary.withOpacity(0.65),
+                ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

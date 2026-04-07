@@ -53,7 +53,7 @@ abstract final class AppTextStyles {
     height: 1.4,
   );
   static const cardAction = TextStyle(
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.3,

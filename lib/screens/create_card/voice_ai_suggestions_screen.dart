@@ -79,7 +79,7 @@ class _VoiceAISuggestionsScreenState
       final now = DateTime.now().millisecondsSinceEpoch + i;
       final card = CardModel(
         id: now.toString(),
-        actionLabel: 'Get started',
+        actionLabel: 'Decide what to do first',
         goalLabel: titles[i],
         durationSeconds: 120,
         sortOrder: 0,
@@ -105,67 +105,79 @@ class _VoiceAISuggestionsScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: AppSpacing.md),
-              Semantics(
-                label: 'Back',
-                button: true,
-                child: IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: AppColors.textMuted,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+                children: [
+                  const SizedBox(height: AppSpacing.md),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Semantics(
+                      label: 'Back',
+                      button: true,
+                      child: IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: AppColors.textMuted,
+                        ),
+                        padding: EdgeInsets.zero,
+                        iconSize: 24,
+                        constraints: const BoxConstraints(
+                          minWidth: 44,
+                          minHeight: 44,
+                        ),
+                      ),
+                    ),
                   ),
-                  padding: EdgeInsets.zero,
-                  iconSize: 24,
-                  constraints: const BoxConstraints(
-                    minWidth: 44,
-                    minHeight: 44,
+                  const SizedBox(height: AppSpacing.lg),
+                  const Text(
+                    "Here's what I heard",
+                    style: AppTextStyles.headline,
                   ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              const Text(
-                "Here's what I heard",
-                style: AppTextStyles.headline,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              const Text(
-                'Pick what to work on',
-                style: AppTextStyles.bodyMuted,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _items.length,
-                  itemBuilder: (_, index) => _buildTile(index),
-                ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: Semantics(
-                  button: true,
-                  label: 'Add selected tasks',
-                  child: FilledButton(
-                    onPressed: _hasSelection ? _onAddSelected : null,
-                    child: const Text('Add selected'),
+                  const SizedBox(height: AppSpacing.xs),
+                  const Text(
+                    'Pick what to work on',
+                    style: AppTextStyles.bodyMuted,
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.lg),
+                  ...List.generate(
+                    _items.length,
+                    (index) => _buildTile(index),
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.xs),
-              Center(
-                child: TextButton(
-                  onPressed: _goManual,
-                  child: const Text('Add manually instead'),
-                ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: Semantics(
+                      button: true,
+                      label: 'Add selected tasks',
+                      child: FilledButton(
+                        onPressed: _hasSelection ? _onAddSelected : null,
+                        child: const Text('Next Step'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Center(
+                    child: TextButton(
+                      onPressed: _goManual,
+                      child: const Text('Add manually instead'),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
               ),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

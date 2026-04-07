@@ -137,7 +137,7 @@ class _CompletionScreenState extends State<CompletionScreen>
                         width: double.infinity,
                         child: FilledButton(
                           onPressed: widget.onComplete,
-                          child: const Text('Back to deck'),
+                          child: const Text('I\'m finished'),
                         ),
                       ),
                     ),
