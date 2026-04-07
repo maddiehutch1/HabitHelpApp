@@ -550,12 +550,28 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Text(
-                          'Later',
+                          'Complete',
                           style: AppTextStyles.bodyMuted,
                         ),
                       ),
-                      onDismissed: (_) {
-                        ref.read(cardsProvider.notifier).deferCard(card.id);
+                      confirmDismiss: (_) async {
+                        await Navigator.of(context).push(
+                          fadeRoute(CompletionScreen(
+                            card: card,
+                            onComplete: () async {
+                              await ref
+                                  .read(cardsProvider.notifier)
+                                  .completeCard(card.id);
+                              if (mounted) {
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  fadeRoute(const DeckScreen()),
+                                  (route) => false,
+                                );
+                              }
+                            },
+                          )),
+                        );
+                        return false;
                       },
                       child: _CardTile(
                         card: card,
