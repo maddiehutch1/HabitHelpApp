@@ -225,6 +225,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                   const SizedBox(height: AppSpacing.sm),
                   TextField(
                     controller: actionController,
+                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     style: AppTextStyles.body,
                     decoration: const InputDecoration(
                       labelText: 'Action label',
@@ -234,6 +235,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                   const SizedBox(height: AppSpacing.sm),
                   TextField(
                     controller: goalController,
+                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                     style: AppTextStyles.body,
                     decoration: const InputDecoration(
                       labelText: 'Goal label',
@@ -809,6 +811,7 @@ class _AddMethodSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    final safePadding = bottomInset > 24.0 ? bottomInset : 24.0;
     final buttonStyle = OutlinedButton.styleFrom(
       foregroundColor: AppColors.textMuted,
       side: const BorderSide(color: AppColors.surfaceHigh),
@@ -820,7 +823,7 @@ class _AddMethodSheet extends StatelessWidget {
         AppSpacing.page,
         AppSpacing.md,
         AppSpacing.page,
-        AppSpacing.md + (bottomInset > 24.0 ? bottomInset : 24.0),
+        AppSpacing.md + safePadding,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

@@ -284,6 +284,7 @@ class _VoiceInputSheetState extends State<VoiceInputSheet>
         const SizedBox(height: AppSpacing.md),
         TextField(
           controller: _transcriptionController,
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           maxLines: 8,
           style: const TextStyle(color: AppColors.textPrimary),
           decoration: InputDecoration(
