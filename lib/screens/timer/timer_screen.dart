@@ -202,7 +202,7 @@ class _TimerScreenState extends State<TimerScreen>
       if (goal.isNotEmpty) {
         Navigator.of(context).pushAndRemoveUntil(
           fadeRoute(NextStepScreen(goalLabel: goal)),
-          (route) => false,
+          (route) => route.isFirst,
         );
       } else {
         Navigator.of(context).pushAndRemoveUntil(
