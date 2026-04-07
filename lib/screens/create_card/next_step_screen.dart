@@ -158,7 +158,6 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                       TextField(
                         controller: _controller,
                         onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                        autofocus: true,
                         style: const TextStyle(
                           fontSize: 18,
                           color: AppColors.textPrimary,
