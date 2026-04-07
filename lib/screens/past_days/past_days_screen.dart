@@ -257,7 +257,7 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.xs),
-                  const Text('Archive', style: AppTextStyles.screenTitle),
+                  const Text('Completed', style: AppTextStyles.screenTitle),
                 ],
               ),
             ),
@@ -273,7 +273,7 @@ class _PastDaysScreenState extends ConsumerState<PastDaysScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(AppSpacing.page),
                         child: Text(
-                          'Your archive is empty. Completed and scheduled cards will appear here.',
+                          'Your completed tasks list is empty. Completed and scheduled cards will appear here.',
                           textAlign: TextAlign.center,
                           style: AppTextStyles.bodyMuted,
                         ),

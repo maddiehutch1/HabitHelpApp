@@ -380,7 +380,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
           ),
           const SizedBox(height: AppSpacing.sm),
           Semantics(
-            label: 'View archive',
+            label: 'View completed',
             button: true,
             child: TextButton(
               onPressed: _openPastDays,
@@ -390,7 +390,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Archive'),
+                  Text('Completed'),
                 ],
               ),
             ),
@@ -444,7 +444,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
               ],
               const Spacer(),
               Semantics(
-                label: 'Archive',
+                label: 'Completed',
                 button: true,
                 child: IconButton(
                   onPressed: _openPastDays,
