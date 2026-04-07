@@ -143,8 +143,6 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                       Text(
                         widget.goalLabel,
                         style: AppTextStyles.contextLabel,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       const Text(
@@ -174,11 +172,14 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                       if (!_loadingSuggestions && _suggestions == null)
                         Padding(
                           padding: const EdgeInsets.only(top: AppSpacing.xs),
-                          child: TextButton.icon(
+                          child: OutlinedButton.icon(
                             onPressed: _showAISuggestions,
                             icon: const Icon(Icons.auto_awesome, size: 16),
                             label: const Text('Help me think of one'),
-                            style: TextButton.styleFrom(foregroundColor: AppColors.aiAccent),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.aiAccent,
+                              side: BorderSide(color: AppColors.aiAccent.withOpacity(0.5)),
+                            ),
                           ),
                         ),
                       if (_loadingSuggestions)
@@ -209,11 +210,14 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                           !_loadingSmaller)
                         Padding(
                           padding: const EdgeInsets.only(top: AppSpacing.xs),
-                          child: TextButton.icon(
+                          child: OutlinedButton.icon(
                             onPressed: _makeSmaller,
                             icon: const Icon(Icons.auto_awesome, size: 16),
                             label: const Text('Make this smaller'),
-                            style: TextButton.styleFrom(foregroundColor: AppColors.aiAccent),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.aiAccent,
+                              side: BorderSide(color: AppColors.aiAccent.withOpacity(0.5)),
+                            ),
                           ),
                         ),
                       if (_loadingSmaller)

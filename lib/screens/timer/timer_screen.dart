@@ -365,7 +365,7 @@ class _TimerScreenState extends State<TimerScreen>
                   padding: buttonPadding,
                   textStyle: buttonTextStyle,
                 ),
-                child: const Text('Do next task'),
+                child: const Text('Continue'),
               ),
             ),
           ],
@@ -395,7 +395,7 @@ class _TimerScreenState extends State<TimerScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('Exit Early'),
+            child: const Text('Exit early'),
           ),
           // Complete
           FilledButton.icon(
