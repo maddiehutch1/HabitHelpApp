@@ -22,6 +22,7 @@ class CardDetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
+    final safePadding = bottomInset > 24.0 ? bottomInset : 24.0;
     final hasGoal = card.goalLabel != null && card.goalLabel!.isNotEmpty;
 
     final compactTextButtonStyle = TextButton.styleFrom(
@@ -35,7 +36,7 @@ class CardDetailSheet extends StatelessWidget {
         AppSpacing.page,
         AppSpacing.md,
         AppSpacing.page,
-        AppSpacing.md + bottomInset,
+        AppSpacing.md + safePadding,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

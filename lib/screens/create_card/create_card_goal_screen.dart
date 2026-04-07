@@ -87,6 +87,7 @@ class _CreateCardGoalScreenState extends State<CreateCardGoalScreen> {
                       const SizedBox(height: AppSpacing.lg),
                       TextField(
                         controller: _controller,
+                        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
                         autofocus: true,
                         style: const TextStyle(
                           fontSize: 18,
