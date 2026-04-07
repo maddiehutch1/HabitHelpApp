@@ -25,7 +25,7 @@ Future<Database> getDatabase() async {
   final path = _testDbPath ?? join(await getDatabasesPath(), 'microdeck.db');
   _db = await openDatabase(
     path,
-    version: 6,
+    version: 7,
     onCreate: (db, version) async {
       await db.execute('''
         CREATE TABLE cards (
@@ -119,6 +119,11 @@ Future<Database> getDatabase() async {
         } catch (_) {
           // Column already exists on devices that ran the old v5 migration — safe to ignore
         }
+      }
+      if (oldVersion < 7) {
+        try {
+          await db.execute('ALTER TABLE cards ADD COLUMN completedAt INTEGER');
+        } catch (_) {}
       }
     },
   );
