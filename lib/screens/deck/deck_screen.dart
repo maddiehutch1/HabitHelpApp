@@ -785,14 +785,19 @@ class _CardTile extends StatelessWidget {
                           ),
                         ),
                       if (showContinueNudge && onContinue != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: GestureDetector(
-                            onTap: onContinue,
-                            child: Text(
-                              'Continue \u2192',
-                              style: AppTextStyles.badge.copyWith(
-                                color: AppColors.textMuted,
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: onContinue,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Text(
+                                'Continue \u2192',
+                                style: AppTextStyles.badge.copyWith(
+                                  fontSize: 14,
+                                  color: AppColors.textMuted,
+                                ),
                               ),
                             ),
                           ),

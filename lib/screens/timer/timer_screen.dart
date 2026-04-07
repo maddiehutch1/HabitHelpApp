@@ -11,6 +11,7 @@ import '../../data/models/session_model.dart';
 import '../../routes.dart';
 import '../../theme.dart';
 import '../deck/deck_screen.dart';
+import '../create_card/next_step_screen.dart';
 import 'celebration_screen.dart';
 
 class TimerScreen extends StatefulWidget {
@@ -189,17 +190,18 @@ class _TimerScreenState extends State<TimerScreen>
 
     if (!mounted) return;
     if (doNextTask) {
-      // Navigate to CelebrationScreen which owns the post-completion flow
-      Navigator.of(context).pushAndRemoveUntil(
-        fadeRoute(
-          CelebrationScreen(
-            card: widget.card,
-            elapsedSeconds: widget.card.durationSeconds + _overtimeSeconds,
-            extraTimeSeconds: _overtimeSeconds,
-          ),
-        ),
-        (route) => false,
-      );
+      final goal = widget.card.goalLabel;
+      if (goal != null && goal.isNotEmpty) {
+        Navigator.of(context).pushAndRemoveUntil(
+          fadeRoute(NextStepScreen(goalLabel: goal)),
+          (route) => false,
+        );
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          fadeRoute(const DeckScreen()),
+          (route) => false,
+        );
+      }
     } else {
       // I'm finished — go straight to deck
       Navigator.of(
