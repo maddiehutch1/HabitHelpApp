@@ -174,9 +174,11 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                       if (!_loadingSuggestions && _suggestions == null)
                         Padding(
                           padding: const EdgeInsets.only(top: AppSpacing.xs),
-                          child: TextButton(
+                          child: TextButton.icon(
                             onPressed: _showAISuggestions,
-                            child: const Text('Help me think of one'),
+                            icon: const Icon(Icons.auto_awesome, size: 16),
+                            label: const Text('Help me think of one'),
+                            style: TextButton.styleFrom(foregroundColor: AppColors.aiAccent),
                           ),
                         ),
                       if (_loadingSuggestions)
@@ -209,9 +211,11 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                           !_loadingSmaller)
                         Padding(
                           padding: const EdgeInsets.only(top: AppSpacing.xs),
-                          child: TextButton(
+                          child: TextButton.icon(
                             onPressed: _makeSmaller,
-                            child: const Text('Make this smaller'),
+                            icon: const Icon(Icons.auto_awesome, size: 16),
+                            label: const Text('Make this smaller'),
+                            style: TextButton.styleFrom(foregroundColor: AppColors.aiAccent),
                           ),
                         ),
                       if (_loadingSmaller)

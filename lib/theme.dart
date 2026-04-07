@@ -8,6 +8,7 @@ abstract final class AppColors {
   static const textMuted = Color(0xFF8A8580);
   static const textFaint = Color(0xFF4A4744);
   static const border = Color(0xFF2A2825);
+  static const aiAccent = Color(0xFFD4A855);
 }
 
 abstract final class AppSpacing {

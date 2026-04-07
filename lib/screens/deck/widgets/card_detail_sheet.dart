@@ -24,6 +24,12 @@ class CardDetailSheet extends StatelessWidget {
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
     final hasGoal = card.goalLabel != null && card.goalLabel!.isNotEmpty;
 
+    final compactTextButtonStyle = TextButton.styleFrom(
+      foregroundColor: AppColors.textFaint,
+      textStyle: const TextStyle(fontSize: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    );
+
     return Padding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.page,
@@ -75,27 +81,23 @@ class CardDetailSheet extends StatelessWidget {
             ),
           ],
           const SizedBox(height: AppSpacing.xs),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              onPressed: onEdit,
-              child: const Text('Edit'),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              onPressed: onComplete,
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.check, size: 18),
-                  SizedBox(width: 4),
-                  Text('Complete'),
-                ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton.icon(
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Edit'),
+                style: compactTextButtonStyle,
               ),
-            ),
+              const SizedBox(width: 24),
+              TextButton.icon(
+                onPressed: onComplete,
+                icon: const Icon(Icons.check),
+                label: const Text('Complete'),
+                style: compactTextButtonStyle,
+              ),
+            ],
           ),
         ],
       ),

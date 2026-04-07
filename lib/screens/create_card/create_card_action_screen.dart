@@ -167,9 +167,11 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                       if (!_loadingSuggestions && _suggestions == null)
                         Padding(
                           padding: const EdgeInsets.only(top: AppSpacing.xs),
-                          child: TextButton(
+                          child: TextButton.icon(
                             onPressed: _showAISuggestions,
-                            child: const Text("I'm stuck – show ideas"),
+                            icon: const Icon(Icons.auto_awesome, size: 16),
+                            label: const Text("I'm stuck – show ideas"),
+                            style: TextButton.styleFrom(foregroundColor: AppColors.aiAccent),
                           ),
                         ),
                       if (_loadingSuggestions)
@@ -202,9 +204,11 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                           !_loadingSmaller)
                         Padding(
                           padding: const EdgeInsets.only(top: AppSpacing.xs),
-                          child: TextButton(
+                          child: TextButton.icon(
                             onPressed: _makeSmaller,
-                            child: const Text('Make this smaller'),
+                            icon: const Icon(Icons.auto_awesome, size: 16),
+                            label: const Text('Make this smaller'),
+                            style: TextButton.styleFrom(foregroundColor: AppColors.aiAccent),
                           ),
                         ),
                       if (_loadingSmaller)
