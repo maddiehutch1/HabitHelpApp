@@ -164,6 +164,16 @@ Nothing in Phase 4 gets built without evidence from real user behavior.
 
 ---
 
+## Phase 11 — UI Polish & Voice Fix ✅ Complete
+**Goal:** Fix four usability issues: shorten transcription button text, add confetti to the goal-completion screen, fix voice-created task hierarchy for continuation flow, and fix card detail sheet overflow.
+
+- [x] Transcription button text shortened to "Create cards"
+- [x] CompletionScreen has confetti + haptic matching CelebrationScreen
+- [x] Voice-created tasks use goalLabel (AI title) + actionLabel ("Get started")
+- [x] Card detail sheet overflow fixed — Edit/Complete always visible
+
+---
+
 ## Phase Plan & Roadmap Docs
 
 Each phase has a detailed plan (implementation steps) and a roadmap (milestone tracking):
@@ -182,3 +192,4 @@ Each phase has a detailed plan (implementation steps) and a roadmap (milestone t
 | Phase 8 — Momentum & Dashboard ✅ | [phase-8-momentum-dashboard](complete/2026-04-06-phase-8-momentum-dashboard.md) | [roadmap-phase-8](complete/2026-04-06-roadmap-phase-8-momentum-dashboard.md) |
 | Phase 9 — Sheet & AI Polish ✅ | [phase-9-sheet-ai-polish](complete/2026-04-06-phase-9-sheet-and-ai-polish.md) | [roadmap-phase-9](complete/2026-04-06-roadmap-phase-9-sheet-and-ai-polish.md) |
 | Phase 10 — UX Fixes ✅ | [phase-10-ux-fixes](complete/2026-04-06-phase-10-ux-fixes.md) | [roadmap-phase-10](complete/2026-04-06-roadmap-phase-10-ux-fixes.md) |
+| Phase 11 — UI Polish & Voice Fix ✅ | [phase-11-ui-polish-voice-fix](complete/2026-04-07-phase-11-ui-polish-voice-fix.md) | [roadmap-phase-11](complete/2026-04-07-roadmap-phase-11-ui-polish-voice-fix.md) |

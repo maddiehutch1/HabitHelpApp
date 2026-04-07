@@ -196,6 +196,19 @@ This is meant to be a CONCISE list of changes to track as we develop this projec
 
 ---
 
+## Phase 11 — UI Polish & Voice Fix
+*Apr 7, 2026 · Plan: [ai/roadmaps/2026-04-07-phase-11-ui-polish-voice-fix.md](../ai/roadmaps/2026-04-07-phase-11-ui-polish-voice-fix.md)*
+
+- `lib/screens/deck/widgets/voice_input_sheet.dart` — Shortened "Create cards from this" button to "Create cards" to prevent text wrapping
+- `lib/screens/deck/completion_screen.dart` — Added confetti + haptic feedback to match CelebrationScreen; body wrapped in Stack with ConfettiWidget overlay
+- `lib/screens/create_card/voice_ai_suggestions_screen.dart` — Voice-created tasks now set `goalLabel` to AI-extracted title and `actionLabel` to "Get started", enabling continuation flow ("What's next?", "Do next task")
+- `lib/screens/deck/widgets/card_detail_sheet.dart` — Reduced spacing (`lg→md`, `xs→4`) to fix bottom overflow hiding Edit/Complete row on cards with goalLabel
+- `lib/data/repositories/card_repository.dart` — Added `restoreCompletedCard()` method that clears `completedAt` + `isArchived` and assigns new sort order
+- `lib/screens/past_days/past_days_screen.dart` — Completed cards now support long-press → "Restore to deck?" bottom sheet; added `_showRestoreSheet`, `_restoreCompletedCard`, and `onLongPress` on `_CompletedCardTile`
+- `flutter analyze` — no issues
+
+---
+
 ## Extra — App Icon (not tied to a roadmap phase)
 *Feb 23, 2026*
 

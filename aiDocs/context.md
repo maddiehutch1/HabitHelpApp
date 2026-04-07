@@ -52,7 +52,7 @@ Core philosophy: **one card, two minutes, no judgment.**
 
 Phases 0–10 are complete. Phase roadmaps are archived in `ai/roadmaps/complete/`. The high-level project plan (`ai/roadmaps/2026-02-19-high-level-project-plan.md`) stays at the roadmaps root as a persistent reference.
 
-**Phase 10 (UX Fixes)** addressed three usability issues from user testing: enlarged the Continue nudge tap target on deck cards, made overtime "Do next task" skip the celebration screen, and replaced the step-by-step voice card creation with batch saving.
+**Phase 11 (UI Polish & Voice Fix)** addressed four usability issues: shortened the voice transcription button text, added confetti to the goal-completion screen, fixed voice-created task hierarchy so continuation flow works (goalLabel = AI title, actionLabel = "Get started"), fixed card detail sheet overflow, and added restore-from-archive for completed cards.
 
 **CLI Testing Infrastructure** is complete. Run `.\\scripts\\test.ps1` (Windows) or `bash scripts/test.sh` (Mac/Linux). See `TEST_README.md` and `ai/roadmaps/complete/2026-02-21-extra-cli-testing.md`.
 
