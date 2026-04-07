@@ -383,7 +383,8 @@ class _PastDayCardTile extends StatelessWidget {
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (card.goalLabel != null && card.goalLabel!.isNotEmpty)
+                        if (card.goalLabel != null &&
+                            card.goalLabel!.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.only(top: 6),
                             child: Text(
@@ -432,8 +433,7 @@ class _CompletedCardTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Semantics(
         button: true,
-        label:
-            '${card.goalLabel ?? card.actionLabel}. Long press to restore.',
+        label: '${card.goalLabel ?? card.actionLabel}. Long press to restore.',
         child: InkWell(
           onLongPress: onLongPress,
           borderRadius: BorderRadius.circular(14),
@@ -459,10 +459,7 @@ class _CompletedCardTile extends StatelessWidget {
                         ),
                         if (card.goalLabel != null) ...[
                           const SizedBox(height: 4),
-                          Text(
-                            card.actionLabel,
-                            style: AppTextStyles.cardGoal,
-                          ),
+                          Text(card.actionLabel, style: AppTextStyles.cardGoal),
                         ],
                         const SizedBox(height: 4),
                         Text(

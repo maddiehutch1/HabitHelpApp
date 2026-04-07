@@ -6,7 +6,9 @@ class ScheduleRepository {
   Future<void> insertSchedule(ScheduleModel schedule) async {
     final db = await getDatabase();
     await db.insert('schedules', schedule.toMap());
-    scheduleRepoLog.info('insertSchedule — id=${schedule.id} cardId=${schedule.cardId}');
+    scheduleRepoLog.info(
+      'insertSchedule — id=${schedule.id} cardId=${schedule.cardId}',
+    );
   }
 
   Future<List<ScheduleModel>> getAllActiveSchedules() async {
@@ -25,7 +27,9 @@ class ScheduleRepository {
       whereArgs: [cardId],
     );
     final schedules = rows.map(ScheduleModel.fromMap).toList();
-    scheduleRepoLog.fine('getSchedulesForCard — cardId=$cardId found=${schedules.length}');
+    scheduleRepoLog.fine(
+      'getSchedulesForCard — cardId=$cardId found=${schedules.length}',
+    );
     return schedules;
   }
 

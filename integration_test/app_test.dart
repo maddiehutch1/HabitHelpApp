@@ -82,7 +82,7 @@ void main() {
 
       // Add method sheet should appear with both options
       expect(find.text('Use voice'), findsOneWidget);
-      expect(find.text('Type it'), findsOneWidget);
+      expect(find.text('Use keyboard'), findsOneWidget);
     });
   });
 
@@ -159,10 +159,12 @@ void main() {
 
       // Add method sheet must still offer both paths
       expect(find.text('Use voice'), findsOneWidget);
-      expect(find.text('Type it'), findsOneWidget);
+      expect(find.text('Use keyboard'), findsOneWidget);
     });
 
-    testWidgets('"Type it" still navigates to goal screen', (tester) async {
+    testWidgets('"Use keyboard" still navigates to goal screen', (
+      tester,
+    ) async {
       await _setOnboardingComplete();
       app.main();
       await tester.pumpAndSettle();
@@ -170,14 +172,11 @@ void main() {
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Type it'));
+      await tester.tap(find.text('Use keyboard'));
       await tester.pumpAndSettle();
 
       // Goal screen should show
-      expect(
-        find.textContaining('big and difficult'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('big and difficult'), findsOneWidget);
     });
   });
 }

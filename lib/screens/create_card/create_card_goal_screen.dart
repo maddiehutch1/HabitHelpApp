@@ -39,10 +39,8 @@ class _CreateCardGoalScreenState extends State<CreateCardGoalScreen> {
     if (text.isEmpty) return;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => CreateCardActionScreen(
-          goal: text,
-          onCardSaved: widget.onCardSaved,
-        ),
+        builder: (_) =>
+            CreateCardActionScreen(goal: text, onCardSaved: widget.onCardSaved),
       ),
     );
   }
@@ -87,7 +85,8 @@ class _CreateCardGoalScreenState extends State<CreateCardGoalScreen> {
                       const SizedBox(height: AppSpacing.lg),
                       TextField(
                         controller: _controller,
-                        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                        onTapOutside: (_) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                         autofocus: true,
                         style: const TextStyle(
                           fontSize: 18,

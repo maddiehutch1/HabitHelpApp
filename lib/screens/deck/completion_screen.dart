@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../data/models/card_model.dart';
 import '../../theme.dart';
+import '../timer/celebration_screen.dart' show celebrationPhrases;
 
 class CompletionScreen extends StatefulWidget {
   const CompletionScreen({
@@ -28,9 +29,7 @@ class CompletionScreen extends StatefulWidget {
 class _CompletionScreenState extends State<CompletionScreen>
     with TickerProviderStateMixin {
   late final ConfettiController _confettiController;
-
-  late final AnimationController _checkController;
-  late final Animation<double> _checkScale;
+  final String _headline = (celebrationPhrases.toList()..shuffle()).first;
 
   late final AnimationController _buttonController;
   late final Animation<double> _buttonOpacity;
@@ -47,15 +46,6 @@ class _CompletionScreenState extends State<CompletionScreen>
     HapticFeedback.mediumImpact();
     _confettiController.play();
 
-    _checkController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _checkScale = CurvedAnimation(
-      parent: _checkController,
-      curve: Curves.easeOutBack,
-    );
-
     _buttonController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 400),
@@ -65,9 +55,7 @@ class _CompletionScreenState extends State<CompletionScreen>
       curve: Curves.easeIn,
     );
 
-    _checkController.forward();
-
-    _buttonTimer = Timer(const Duration(milliseconds: 1500), () {
+    _buttonTimer = Timer(const Duration(milliseconds: 800), () {
       if (mounted) _buttonController.forward();
     });
   }
@@ -75,7 +63,6 @@ class _CompletionScreenState extends State<CompletionScreen>
   @override
   void dispose() {
     _buttonTimer?.cancel();
-    _checkController.dispose();
     _buttonController.dispose();
     _confettiController.dispose();
     super.dispose();
@@ -83,7 +70,8 @@ class _CompletionScreenState extends State<CompletionScreen>
 
   @override
   Widget build(BuildContext context) {
-    final hasNextStep = widget.card.goalLabel != null &&
+    final hasNextStep =
+        widget.card.goalLabel != null &&
         widget.card.goalLabel!.isNotEmpty &&
         widget.onNextStep != null;
 
@@ -112,31 +100,27 @@ class _CompletionScreenState extends State<CompletionScreen>
               ),
             ),
             // Main content
-            Center(
+            Align(
+              alignment: const Alignment(0, -0.2),
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.page,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    ScaleTransition(
-                      scale: _checkScale,
-                      child: const Icon(
-                        Icons.check_circle_outline,
-                        size: 80,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
                     Text(
                       widget.card.actionLabel,
-                      style: AppTextStyles.completion,
+                      style: AppTextStyles.bodyMuted,
                       textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    const Text(
-                      'Done. You finished it.',
-                      style: AppTextStyles.bodyMuted,
+                    Text(
+                      _headline,
+                      style: AppTextStyles.completion,
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     FadeTransition(
@@ -144,29 +128,30 @@ class _CompletionScreenState extends State<CompletionScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: widget.onComplete,
-                              child: const Text('Go Back to Home'),
-                            ),
-                          ),
                           if (hasNextStep) ...[
-                            const SizedBox(height: AppSpacing.xs),
                             SizedBox(
                               width: double.infinity,
-                              child: OutlinedButton(
+                              child: FilledButton(
                                 onPressed: widget.onNextStep,
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.textMuted,
-                                  side: const BorderSide(
-                                    color: AppColors.surfaceHigh,
-                                  ),
-                                ),
-                                child: const Text('Plan my next step \u2192'),
+                                child: const Text('Plan my next step →'),
                               ),
                             ),
+                            const SizedBox(height: AppSpacing.xs),
                           ],
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton(
+                              onPressed: widget.onComplete,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.textMuted,
+                                side: const BorderSide(color: AppColors.border),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text('Go back to home'),
+                            ),
+                          ),
                         ],
                       ),
                     ),

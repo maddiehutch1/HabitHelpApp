@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
@@ -12,7 +11,6 @@ import '../../data/models/session_model.dart';
 import '../../routes.dart';
 import '../../theme.dart';
 import '../deck/deck_screen.dart';
-import '../create_card/next_step_screen.dart';
 import 'celebration_screen.dart';
 
 class TimerScreen extends StatefulWidget {
@@ -40,7 +38,6 @@ class _TimerScreenState extends State<TimerScreen>
   // Timer digit fade animation (1.0 → 0.1 after 5s, back to 1.0 at 10s remaining)
   late final AnimationController _timerOpacityController;
   late final Animation<double> _timerOpacity;
-  late final ConfettiController _confettiController;
 
   @override
   void initState() {
@@ -60,10 +57,6 @@ class _TimerScreenState extends State<TimerScreen>
       CurvedAnimation(parent: _timerOpacityController, curve: Curves.easeInOut),
     );
 
-    _confettiController = ConfettiController(
-      duration: const Duration(seconds: 2),
-    );
-
     _startTicker();
     _scheduleFade();
   }
@@ -74,7 +67,6 @@ class _TimerScreenState extends State<TimerScreen>
     _fadeTimer?.cancel();
     _overtimeTicker?.cancel();
     _timerOpacityController.dispose();
-    _confettiController.dispose();
     WakelockPlus.disable();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -119,7 +111,6 @@ class _TimerScreenState extends State<TimerScreen>
     _timerOpacityController.reverse();
     HapticFeedback.mediumImpact();
     setState(() => _isOvertime = true);
-    _confettiController.play();
     _overtimeTicker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() => _overtimeSeconds++);
@@ -147,8 +138,7 @@ class _TimerScreenState extends State<TimerScreen>
     }
   }
 
-  int get _elapsedSeconds =>
-      widget.card.durationSeconds - _secondsRemaining;
+  int get _elapsedSeconds => widget.card.durationSeconds - _secondsRemaining;
 
   Future<void> _handleExitEarly() async {
     _fadeTimer?.cancel();
@@ -184,38 +174,30 @@ class _TimerScreenState extends State<TimerScreen>
     );
   }
 
-  Future<void> _handleOvertimeAction({required bool doNextTask}) async {
+  Future<void> _handleOvertimeFinished() async {
     if (_isCompleting) return;
     _isCompleting = true;
     _overtimeTicker?.cancel();
     _fadeTimer?.cancel();
 
+    final totalElapsed = widget.card.durationSeconds + _overtimeSeconds;
     await _saveSession(
       isPartial: false,
-      elapsedSeconds: widget.card.durationSeconds,
+      elapsedSeconds: totalElapsed,
       extraTimeSeconds: _overtimeSeconds,
     );
 
     if (!mounted) return;
-    if (doNextTask) {
-      final goal = (widget.card.goalLabel != null && widget.card.goalLabel!.isNotEmpty) ? widget.card.goalLabel! : widget.card.actionLabel;
-      if (goal.isNotEmpty) {
-        Navigator.of(context).pushAndRemoveUntil(
-          fadeRoute(NextStepScreen(goalLabel: goal)),
-          (route) => false,
-        );
-      } else {
-        Navigator.of(context).pushAndRemoveUntil(
-          fadeRoute(const DeckScreen()),
-          (route) => false,
-        );
-      }
-    } else {
-      // I'm finished — go straight to deck
-      Navigator.of(
-        context,
-      ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
-    }
+    Navigator.of(context).pushAndRemoveUntil(
+      fadeRoute(
+        CelebrationScreen(
+          card: widget.card,
+          elapsedSeconds: totalElapsed,
+          extraTimeSeconds: _overtimeSeconds,
+        ),
+      ),
+      (route) => false,
+    );
   }
 
   Future<void> _saveSession({
@@ -254,26 +236,6 @@ class _TimerScreenState extends State<TimerScreen>
         body: SafeArea(
           child: Stack(
             children: [
-              if (_isOvertime)
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: ConfettiWidget(
-                    confettiController: _confettiController,
-                    blastDirectionality: BlastDirectionality.explosive,
-                    shouldLoop: false,
-                    numberOfParticles: 30,
-                    maxBlastForce: 20,
-                    minBlastForce: 8,
-                    emissionFrequency: 0.05,
-                    colors: const [
-                      Color(0xFFFFD700),
-                      Color(0xFFFF6B6B),
-                      Color(0xFF4ECDC4),
-                      Color(0xFF95E1D3),
-                      Color(0xFFF38181),
-                    ],
-                  ),
-                ),
               _isOvertime
                   ? _buildOvertimeBody()
                   : Column(
@@ -310,10 +272,8 @@ class _TimerScreenState extends State<TimerScreen>
             label: 'Time remaining: ${_formatTime(_secondsRemaining)}',
             child: AnimatedBuilder(
               animation: _timerOpacity,
-              builder: (context, child) => Opacity(
-                opacity: _timerOpacity.value,
-                child: child,
-              ),
+              builder: (context, child) =>
+                  Opacity(opacity: _timerOpacity.value, child: child),
               child: Text(
                 _formatTime(_secondsRemaining),
                 style: AppTextStyles.timerDisplay,
@@ -375,31 +335,14 @@ class _TimerScreenState extends State<TimerScreen>
             // I'm finished
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => _handleOvertimeAction(doNextTask: false),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textMuted,
-                  side: const BorderSide(color: AppColors.border),
+              child: FilledButton(
+                onPressed: _isCompleting ? null : _handleOvertimeFinished,
+                style: FilledButton.styleFrom(
                   padding: buttonPadding,
                   textStyle: buttonTextStyle,
                   shape: buttonShape,
                 ),
                 child: const Text("I'm finished"),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            // Do next task
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _isCompleting
-                    ? null
-                    : () => _handleOvertimeAction(doNextTask: true),
-                style: FilledButton.styleFrom(
-                  padding: buttonPadding,
-                  textStyle: buttonTextStyle,
-                ),
-                child: const Text('Do next task'),
               ),
             ),
           ],
@@ -446,4 +389,3 @@ class _TimerScreenState extends State<TimerScreen>
     );
   }
 }
-

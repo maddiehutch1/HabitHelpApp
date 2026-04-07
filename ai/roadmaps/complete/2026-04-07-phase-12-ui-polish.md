@@ -45,6 +45,23 @@ Polish three areas of the UI based on UX testing feedback:
 
 ---
 
+### 5. Completion screen button order & randomized headline
+
+- Swap primary/secondary buttons on both `CelebrationScreen` and `CompletionScreen`: "Do next task" / "Plan my next step →" is now `FilledButton` (primary); "Go back to home" is now `OutlinedButton` (secondary)
+- Extract a shared `const celebrationPhrases` list in `celebration_screen.dart`; both screens pick a random phrase in `initState` so the headline never feels repetitive
+  - Phrases: "You did it.", "Nice work.", "Nailed it.", "Way to go.", "That's a win.", "You showed up.", "One step done.", "Look at that.", "That counts.", "Momentum built."
+
+---
+
+### 6. Remove post-completion modals from `CelebrationScreen`
+
+- Removed `_ExplainerSheet` ("That's how it works.") — timing was backwards; it fired after the user already completed a task, so the lesson was redundant
+- Removed `_ContinuationPromptSheet` ("Ready for the next tiny step?") — redundant with the deck screen, which already surfaces all available cards; the double-modal chain broke momentum on the celebration screen
+- `_handleDone` now navigates directly to `DeckScreen` for both "Do next task" and "Go back to home"
+- Removed unused imports: `shared_preferences`, `notification_service`, `next_step_screen`
+
+---
+
 ## Out of Scope
 
 - No changes to timer, notification, or data layer

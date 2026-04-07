@@ -45,14 +45,14 @@ class _AppState extends State<App> {
         final mq = MediaQuery.of(context);
         return MediaQuery(
           data: mq.copyWith(
-            padding: mq.padding.copyWith(
-              bottom: mq.padding.bottom + 24.0,
-            ),
+            padding: mq.padding.copyWith(bottom: mq.padding.bottom + 24.0),
             viewPadding: mq.viewPadding.copyWith(
               bottom: mq.viewPadding.bottom + 24.0,
             ),
             viewInsets: mq.viewInsets.copyWith(
-              bottom: mq.viewInsets.bottom > 0 ? mq.viewInsets.bottom + 24.0 : 0.0,
+              bottom: mq.viewInsets.bottom > 0
+                  ? mq.viewInsets.bottom + 24.0
+                  : 0.0,
             ),
           ),
           child: child!,

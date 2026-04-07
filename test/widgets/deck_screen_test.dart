@@ -96,12 +96,4 @@ void main() {
       expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
     });
   });
-
-  group('DeckScreen — Just One mode', () {
-    testWidgets('Just One mode button is present in header', (tester) async {
-      await tester.pumpWidget(_wrapWith([_card()]));
-      await tester.pump();
-      expect(find.byIcon(Icons.filter_1_outlined), findsOneWidget);
-    });
-  });
 }

@@ -109,7 +109,9 @@ class _VoiceAISuggestionsScreenState
           children: [
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.page,
+                ),
                 children: [
                   const SizedBox(height: AppSpacing.md),
                   Align(
@@ -143,10 +145,7 @@ class _VoiceAISuggestionsScreenState
                     style: AppTextStyles.bodyMuted,
                   ),
                   const SizedBox(height: AppSpacing.lg),
-                  ...List.generate(
-                    _items.length,
-                    (index) => _buildTile(index),
-                  ),
+                  ...List.generate(_items.length, (index) => _buildTile(index)),
                 ],
               ),
             ),
@@ -210,8 +209,9 @@ class _VoiceAISuggestionsScreenState
                     textInputAction: TextInputAction.done,
                     onSubmitted: (value) {
                       setState(() {
-                        item.title =
-                            value.trim().isEmpty ? item.title : value.trim();
+                        item.title = value.trim().isEmpty
+                            ? item.title
+                            : value.trim();
                         item.editing = false;
                       });
                     },

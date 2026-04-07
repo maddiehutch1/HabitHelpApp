@@ -216,7 +216,11 @@ This is meant to be a CONCISE list of changes to track as we develop this projec
 - `lib/screens/deck/deck_screen.dart` — Both `CompletionScreen` usages updated to pass `onNextStep` that completes the card then opens `NextStepScreen`; removed `_recentGoalLabels` state and `getGoalLabelsWithRecentSessions()` call; removed `showContinueNudge`/`onContinue` from `_CardTile`
 - `lib/screens/create_card/voice_ai_suggestions_screen.dart` — Edit/confirm icon size bumped from 18 → 22; confirm (checkmark) icon uses `textPrimary` color when editing so "tap to save" is visually distinct from the pencil
 - `lib/screens/deck/widgets/card_detail_sheet.dart` — "What's next?" and Edit/Complete secondary actions changed from `TextButton` to `OutlinedButton` for consistent visual weight without competing with the primary Start button
-- Also removed legacy "Just One mode" dead code (`_enterJustOneMode`, `_exitJustOneMode`, `_buildJustOneMode`, related state) from `deck_screen.dart` — feature was removed after UX testing
+- Removed legacy "Just One mode" dead code from `deck_screen.dart`
+- `lib/screens/deck/deck_screen.dart` — Fixed `TextEditingController` used-after-disposed crash in edit sheet; extracted `_EditCardSheet` `StatefulWidget` so controllers are tied to widget lifecycle
+- `lib/screens/timer/timer_screen.dart` — Confetti moved from overtime entry to "I'm finished" tap; overtime "Do next task" button removed; "I'm finished" now routes to `CelebrationScreen`; removed redundant `ConfettiController` from timer
+- Completion screens unified: both show small muted task label → randomized headline → focus time (where available) → `FilledButton` primary action → `OutlinedButton` "Go back to home"
+- `lib/screens/timer/celebration_screen.dart` + `lib/screens/deck/completion_screen.dart` — Shared `celebrationPhrases` const list (10 phrases); headline randomized per session so completion never feels repetitive; button order swapped so "Do next task" / "Plan my next step →" is the filled primary
 - `flutter analyze` — no issues
 
 ---

@@ -133,10 +133,7 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: AppSpacing.lg),
-                      Text(
-                        widget.goal,
-                        style: AppTextStyles.contextLabel,
-                      ),
+                      Text(widget.goal, style: AppTextStyles.contextLabel),
                       const SizedBox(height: AppSpacing.sm),
                       const Text(
                         "What's one tiny step you could take first?",
@@ -150,7 +147,8 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                       const SizedBox(height: AppSpacing.lg),
                       TextField(
                         controller: _controller,
-                        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                        onTapOutside: (_) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                         style: const TextStyle(
                           fontSize: 18,
                           color: AppColors.textPrimary,
@@ -171,7 +169,11 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                             label: const Text("I'm stuck – show ideas"),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.aiAccent,
-                              side: BorderSide(color: AppColors.aiAccent.withOpacity(0.5)),
+                              side: BorderSide(
+                                color: AppColors.aiAccent.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -209,7 +211,11 @@ class _CreateCardActionScreenState extends State<CreateCardActionScreen> {
                             label: const Text('Make this smaller'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.aiAccent,
-                              side: BorderSide(color: AppColors.aiAccent.withOpacity(0.5)),
+                              side: BorderSide(
+                                color: AppColors.aiAccent.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -276,7 +282,7 @@ class _SuggestionTile extends StatelessWidget {
         color: AppColors.surfaceHigh,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
-          side: BorderSide(color: AppColors.aiAccent.withOpacity(0.3)),
+          side: BorderSide(color: AppColors.aiAccent.withValues(alpha: 0.3)),
         ),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
@@ -285,14 +291,12 @@ class _SuggestionTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
-                Expanded(
-                  child: Text(text, style: AppTextStyles.body),
-                ),
+                Expanded(child: Text(text, style: AppTextStyles.body)),
                 const SizedBox(width: 8),
                 Icon(
                   Icons.arrow_upward,
                   size: 16,
-                  color: AppColors.aiAccent.withOpacity(0.7),
+                  color: AppColors.aiAccent.withValues(alpha: 0.7),
                 ),
               ],
             ),

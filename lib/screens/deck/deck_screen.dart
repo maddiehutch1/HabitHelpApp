@@ -151,35 +151,39 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
         await _showEditSheet(card);
       case _CardAction.complete:
         await Navigator.of(context).push(
-          fadeRoute(CompletionScreen(
-            card: card,
-            onComplete: () async {
-              await ref.read(cardsProvider.notifier).completeCard(card.id);
-              if (mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  fadeRoute(const DeckScreen()),
-                  (route) => false,
-                );
-              }
-            },
-            onNextStep: card.goalLabel != null && card.goalLabel!.isNotEmpty
-                ? () async {
-                    await ref.read(cardsProvider.notifier).completeCard(card.id);
-                    if (mounted) {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        fadeRoute(const DeckScreen()),
-                        (route) => false,
-                      );
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              NextStepScreen(goalLabel: card.goalLabel!),
-                        ),
-                      );
+          fadeRoute(
+            CompletionScreen(
+              card: card,
+              onComplete: () async {
+                await ref.read(cardsProvider.notifier).completeCard(card.id);
+                if (mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    fadeRoute(const DeckScreen()),
+                    (route) => false,
+                  );
+                }
+              },
+              onNextStep: card.goalLabel != null && card.goalLabel!.isNotEmpty
+                  ? () async {
+                      await ref
+                          .read(cardsProvider.notifier)
+                          .completeCard(card.id);
+                      if (mounted) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          fadeRoute(const DeckScreen()),
+                          (route) => false,
+                        );
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                NextStepScreen(goalLabel: card.goalLabel!),
+                          ),
+                        );
+                      }
                     }
-                  }
-                : null,
-          )),
+                  : null,
+            ),
+          ),
         );
       case _CardAction.continueNext:
         if (card.goalLabel != null && card.goalLabel!.isNotEmpty) {
@@ -194,94 +198,38 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
   }
 
   Future<void> _showEditSheet(CardModel card) async {
-    final actionController = TextEditingController(text: card.actionLabel);
-    final goalController = TextEditingController(text: card.goalLabel ?? '');
+    String? savedAction;
+    String? savedGoal;
 
-    final saved = await showModalBottomSheet<bool>(
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setSheetState) {
-            final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
-            final bottomPadding = MediaQuery.of(ctx).viewPadding.bottom;
-            final safePadding = bottomPadding > 24.0 ? bottomPadding : 24.0;
-            return Padding(
-              padding: EdgeInsets.fromLTRB(
-                AppSpacing.page,
-                AppSpacing.md,
-                AppSpacing.page,
-                AppSpacing.md + bottomInset + safePadding,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Edit card', style: AppTextStyles.sheetTitle),
-                  const SizedBox(height: AppSpacing.sm),
-                  TextField(
-                    controller: actionController,
-                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                    style: AppTextStyles.body,
-                    decoration: const InputDecoration(
-                      labelText: 'Action label',
-                    ),
-                    onChanged: (_) => setSheetState(() {}),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  TextField(
-                    controller: goalController,
-                    onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
-                    style: AppTextStyles.body,
-                    decoration: const InputDecoration(
-                      labelText: 'Goal label',
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: actionController.text.trim().isEmpty
-                          ? null
-                          : () => Navigator.of(ctx).pop(true),
-                      child: const Text('Save'),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(false),
-                      child: const Text('Cancel'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-          },
-        );
-      },
+      builder: (ctx) => _EditCardSheet(
+        initialAction: card.actionLabel,
+        initialGoal: card.goalLabel ?? '',
+        onSave: (action, goal) {
+          savedAction = action;
+          savedGoal = goal;
+          Navigator.of(ctx).pop();
+        },
+        onCancel: () => Navigator.of(ctx).pop(),
+      ),
     );
 
-    if (saved == true && mounted) {
-      final newAction = actionController.text.trim();
-      final newGoal = goalController.text.trim();
-      await ref.read(cardsProvider.notifier).updateCard(
+    if (savedAction != null && mounted) {
+      await ref
+          .read(cardsProvider.notifier)
+          .updateCard(
             card.id,
-            actionLabel: newAction,
-            goalLabel: newGoal.isEmpty ? null : newGoal,
+            actionLabel: savedAction!,
+            goalLabel: savedGoal!.isEmpty ? null : savedGoal,
           );
       await _onLoad();
     }
-
-    actionController.dispose();
-    goalController.dispose();
   }
 
   Future<void> _openVoiceInput() async {
@@ -312,8 +260,9 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
         builder: (_) => const _VoiceProcessingDialog(),
       );
 
-      suggestions =
-          await AIService.suggestTasksFromTranscription(transcription);
+      suggestions = await AIService.suggestTasksFromTranscription(
+        transcription,
+      );
 
       if (mounted) Navigator.of(context).pop(); // Dismiss loading dialog
     }
@@ -356,9 +305,9 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
     if (result == _AddMethod.voice) {
       await _openVoiceInput();
     } else if (result == _AddMethod.manual) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const CreateCardGoalScreen()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const CreateCardGoalScreen()));
     }
   }
 
@@ -396,14 +345,10 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
             button: true,
             child: TextButton(
               onPressed: _openPastDays,
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.textFaint,
-              ),
+              style: TextButton.styleFrom(foregroundColor: AppColors.textFaint),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Completed'),
-                ],
+                children: [Text('Completed')],
               ),
             ),
           ),
@@ -417,9 +362,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
     final cards = ref.watch(cardsProvider);
 
     return Scaffold(
-      body: SafeArea(
-        child: _buildDeckView(cards),
-      ),
+      body: SafeArea(child: _buildDeckView(cards)),
       floatingActionButton: Semantics(
         label: 'Add card',
         button: true,
@@ -525,41 +468,46 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                       ),
                       confirmDismiss: (_) async {
                         await Navigator.of(context).push(
-                          fadeRoute(CompletionScreen(
-                            card: card,
-                            onComplete: () async {
-                              await ref
-                                  .read(cardsProvider.notifier)
-                                  .completeCard(card.id);
-                              if (mounted) {
-                                Navigator.of(context).pushAndRemoveUntil(
-                                  fadeRoute(const DeckScreen()),
-                                  (route) => false,
-                                );
-                              }
-                            },
-                            onNextStep: card.goalLabel != null &&
-                                    card.goalLabel!.isNotEmpty
-                                ? () async {
-                                    await ref
-                                        .read(cardsProvider.notifier)
-                                        .completeCard(card.id);
-                                    if (mounted) {
-                                      Navigator.of(context).pushAndRemoveUntil(
-                                        fadeRoute(const DeckScreen()),
-                                        (route) => false,
-                                      );
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => NextStepScreen(
-                                            goalLabel: card.goalLabel!,
+                          fadeRoute(
+                            CompletionScreen(
+                              card: card,
+                              onComplete: () async {
+                                await ref
+                                    .read(cardsProvider.notifier)
+                                    .completeCard(card.id);
+                                if (mounted) {
+                                  Navigator.of(context).pushAndRemoveUntil(
+                                    fadeRoute(const DeckScreen()),
+                                    (route) => false,
+                                  );
+                                }
+                              },
+                              onNextStep:
+                                  card.goalLabel != null &&
+                                      card.goalLabel!.isNotEmpty
+                                  ? () async {
+                                      await ref
+                                          .read(cardsProvider.notifier)
+                                          .completeCard(card.id);
+                                      if (mounted) {
+                                        Navigator.of(
+                                          context,
+                                        ).pushAndRemoveUntil(
+                                          fadeRoute(const DeckScreen()),
+                                          (route) => false,
+                                        );
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) => NextStepScreen(
+                                              goalLabel: card.goalLabel!,
+                                            ),
                                           ),
-                                        ),
-                                      );
+                                        );
+                                      }
                                     }
-                                  }
-                                : null,
-                          )),
+                                  : null,
+                            ),
+                          ),
                         );
                         return false;
                       },
@@ -609,10 +557,7 @@ enum _CardAction { start, edit, complete, continueNext }
 // ─── Card Tile ────────────────────────────────────────────────────────────────
 
 class _CardTile extends StatelessWidget {
-  const _CardTile({
-    required this.card,
-    required this.onTap,
-  });
+  const _CardTile({required this.card, required this.onTap});
 
   final CardModel card;
   final VoidCallback onTap;
@@ -735,6 +680,117 @@ class _AddMethodSheet extends StatelessWidget {
   }
 }
 
+// ─── Edit Card Sheet ──────────────────────────────────────────────────────────
+
+class _EditCardSheet extends StatefulWidget {
+  const _EditCardSheet({
+    required this.initialAction,
+    required this.initialGoal,
+    required this.onSave,
+    required this.onCancel,
+  });
+
+  final String initialAction;
+  final String initialGoal;
+  final void Function(String action, String goal) onSave;
+  final VoidCallback onCancel;
+
+  @override
+  State<_EditCardSheet> createState() => _EditCardSheetState();
+}
+
+class _EditCardSheetState extends State<_EditCardSheet> {
+  late final TextEditingController _actionController;
+  late final TextEditingController _goalController;
+
+  @override
+  void initState() {
+    super.initState();
+    _actionController = TextEditingController(text: widget.initialAction);
+    _goalController = TextEditingController(text: widget.initialGoal);
+  }
+
+  @override
+  void dispose() {
+    _actionController.dispose();
+    _goalController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+    final safePadding = bottomPadding > 24.0 ? bottomPadding : 24.0;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.page,
+        AppSpacing.md,
+        AppSpacing.page,
+        AppSpacing.md + bottomInset + safePadding,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Edit card', style: AppTextStyles.sheetTitle),
+            const SizedBox(height: AppSpacing.sm),
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _actionController,
+              builder: (context, value, _) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _actionController,
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                    style: AppTextStyles.body,
+                    decoration: const InputDecoration(
+                      labelText: 'Action label',
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    controller: _goalController,
+                    onTapOutside: (_) =>
+                        FocusManager.instance.primaryFocus?.unfocus(),
+                    style: AppTextStyles.body,
+                    decoration: const InputDecoration(
+                      labelText: 'Goal label',
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: value.text.trim().isEmpty
+                          ? null
+                          : () => widget.onSave(
+                                _actionController.text.trim(),
+                                _goalController.text.trim(),
+                              ),
+                      child: const Text('Save'),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: widget.onCancel,
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─── Voice Processing Dialog ──────────────────────────────────────────────────
 
 /// Shown while [AIService.suggestTasksFromTranscription] is running.
@@ -756,4 +812,3 @@ class _VoiceProcessingDialog extends StatelessWidget {
     );
   }
 }
-

@@ -47,9 +47,7 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
     await ref.read(cardsProvider.notifier).addCard(card);
 
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      fadeRoute(TimerScreen(card: card)),
-    );
+    Navigator.of(context).pushReplacement(fadeRoute(TimerScreen(card: card)));
   }
 
   Future<void> _showAISuggestions() async {
@@ -59,8 +57,7 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
     setState(() => _loadingSuggestions = true);
 
     try {
-      final suggestions =
-          await AIService.generateFirstSteps(widget.goalLabel);
+      final suggestions = await AIService.generateFirstSteps(widget.goalLabel);
       if (mounted) {
         setState(() {
           _suggestions = suggestions;
@@ -140,10 +137,7 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: AppSpacing.lg),
-                      Text(
-                        widget.goalLabel,
-                        style: AppTextStyles.contextLabel,
-                      ),
+                      Text(widget.goalLabel, style: AppTextStyles.contextLabel),
                       const SizedBox(height: AppSpacing.sm),
                       const Text(
                         "What's the next tiny step?",
@@ -157,7 +151,8 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                       const SizedBox(height: AppSpacing.lg),
                       TextField(
                         controller: _controller,
-                        onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
+                        onTapOutside: (_) =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                         style: const TextStyle(
                           fontSize: 18,
                           color: AppColors.textPrimary,
@@ -178,7 +173,11 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                             label: const Text('Help me think of one'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.aiAccent,
-                              side: BorderSide(color: AppColors.aiAccent.withOpacity(0.5)),
+                              side: BorderSide(
+                                color: AppColors.aiAccent.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -216,7 +215,11 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                             label: const Text('Make this smaller'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.aiAccent,
-                              side: BorderSide(color: AppColors.aiAccent.withOpacity(0.5)),
+                              side: BorderSide(
+                                color: AppColors.aiAccent.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -253,8 +256,7 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                   button: true,
                   label: 'Start',
                   child: FilledButton(
-                    onPressed:
-                        _controller.text.trim().isEmpty ? null : _start,
+                    onPressed: _controller.text.trim().isEmpty ? null : _start,
                     child: const Text('Start'),
                   ),
                 ),
@@ -282,7 +284,7 @@ class _SuggestionTile extends StatelessWidget {
         color: AppColors.surfaceHigh,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
-          side: BorderSide(color: AppColors.aiAccent.withOpacity(0.3)),
+          side: BorderSide(color: AppColors.aiAccent.withValues(alpha: 0.3)),
         ),
         clipBehavior: Clip.hardEdge,
         child: InkWell(
@@ -291,14 +293,12 @@ class _SuggestionTile extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
-                Expanded(
-                  child: Text(text, style: AppTextStyles.body),
-                ),
+                Expanded(child: Text(text, style: AppTextStyles.body)),
                 const SizedBox(width: 8),
                 Icon(
                   Icons.arrow_upward,
                   size: 16,
-                  color: AppColors.aiAccent.withOpacity(0.7),
+                  color: AppColors.aiAccent.withValues(alpha: 0.7),
                 ),
               ],
             ),

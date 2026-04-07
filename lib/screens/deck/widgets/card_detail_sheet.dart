@@ -58,10 +58,7 @@ class CardDetailSheet extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           SizedBox(
             width: double.infinity,
-            child: FilledButton(
-              onPressed: onStart,
-              child: const Text('Start'),
-            ),
+            child: FilledButton(onPressed: onStart, child: const Text('Start')),
           ),
           if (hasGoal) ...[
             const SizedBox(height: AppSpacing.xs),

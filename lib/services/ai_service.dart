@@ -178,8 +178,7 @@ Respond with ONLY a JSON array of strings. Example: ["Open the document", "Set a
       if (response.statusCode != 200) return [];
 
       final data = jsonDecode(response.body);
-      final raw =
-          (data['choices'][0]['message']['content'] as String).trim();
+      final raw = (data['choices'][0]['message']['content'] as String).trim();
 
       final cleaned = raw
           .replaceAll(RegExp(r'^```[a-z]*\s*', multiLine: true), '')

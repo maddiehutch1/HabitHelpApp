@@ -1,13 +1,10 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/models/card_model.dart';
 import '../../routes.dart';
-import '../../services/notification_service.dart';
 import '../../theme.dart';
-import '../create_card/next_step_screen.dart';
 import '../deck/deck_screen.dart';
 
 class CelebrationScreen extends StatefulWidget {
@@ -26,8 +23,22 @@ class CelebrationScreen extends StatefulWidget {
   State<CelebrationScreen> createState() => _CelebrationScreenState();
 }
 
+const celebrationPhrases = [
+  'You did it.',
+  'Nice work.',
+  'Nailed it.',
+  'Way to go.',
+  "That's a win.",
+  'You showed up.',
+  'One step done.',
+  'Look at that.',
+  'That counts.',
+  'Momentum built.',
+];
+
 class _CelebrationScreenState extends State<CelebrationScreen> {
   late final ConfettiController _confettiController;
+  final String _headline = (celebrationPhrases.toList()..shuffle()).first;
 
   @override
   void initState() {
@@ -51,75 +62,10 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
     return '$minutes ${minutes == 1 ? 'minute' : 'minutes'} of focus';
   }
 
-  Future<void> _handleDone() async {
-    await _maybeRequestNotificationPermission();
-    await _maybeShowExplainer();
-    if (!mounted) return;
-
-    // Show continuation prompt if card has a goal label
-    if (widget.card.goalLabel != null && widget.card.goalLabel!.isNotEmpty) {
-      _showContinuationPrompt();
-    } else {
-      Navigator.of(
-        context,
-      ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
-    }
-  }
-
-  void _showContinuationPrompt() {
-    showModalBottomSheet<bool>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      isDismissible: false,
-      builder: (_) => const _ContinuationPromptSheet(),
-    ).then((continueNext) {
-      if (!mounted) return;
-      if (continueNext == true) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) =>
-                NextStepScreen(goalLabel: widget.card.goalLabel!),
-          ),
-          (route) => false,
-        );
-      } else {
-        Navigator.of(
-          context,
-        ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
-      }
-    });
-  }
-
-  Future<void> _maybeRequestNotificationPermission() async {
-    try {
-      final prefs = SharedPreferencesAsync();
-      final asked =
-          await prefs.getBool('hasAskedNotificationPermission') ?? false;
-      if (asked) return;
-      await prefs.setBool('hasAskedNotificationPermission', true);
-      await NotificationService.instance.requestPermission();
-    } catch (_) {}
-  }
-
-  Future<void> _maybeShowExplainer() async {
-    try {
-      final prefs = SharedPreferencesAsync();
-      final seen = await prefs.getBool('hasSeenExplainer') ?? false;
-      if (seen) return;
-      await prefs.setBool('hasSeenExplainer', true);
-      if (!mounted) return;
-      await showModalBottomSheet<void>(
-        context: context,
-        backgroundColor: AppColors.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        builder: (_) => const _ExplainerSheet(),
-      );
-    } catch (_) {}
+  void _handleDone() {
+    Navigator.of(
+      context,
+    ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
   }
 
   @override
@@ -161,23 +107,38 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'You did it.',
+                        widget.card.actionLabel,
+                        style: AppTextStyles.bodyMuted,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        _headline,
                         style: AppTextStyles.completion,
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: AppSpacing.sm),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         _formatFocusTime(widget.elapsedSeconds),
                         style: AppTextStyles.bodyMuted,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      // I'm finished — go straight home
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: _handleDone,
+                          child: const Text('Do next task'),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton(
-                          onPressed: () => Navigator.of(context)
-                              .pushAndRemoveUntil(
+                          onPressed: () =>
+                              Navigator.of(context).pushAndRemoveUntil(
                                 fadeRoute(const DeckScreen()),
                                 (route) => false,
                               ),
@@ -188,16 +149,7 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text("I'm finished"),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      // Do next task — runs full post-completion flow
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: _handleDone,
-                          child: const Text('Do next task'),
+                          child: const Text('Go back to home'),
                         ),
                       ),
                     ],
@@ -212,83 +164,3 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
   }
 }
 
-// ─── Post-Completion Explainer ────────────────────────────────────────────────
-
-class _ExplainerSheet extends StatelessWidget {
-  const _ExplainerSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.page),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("That's how it works.", style: AppTextStyles.headline),
-          const SizedBox(height: AppSpacing.sm),
-          const Text(
-            "Two minutes was enough to start. The hardest part isn't the doing — it's deciding to begin. You just did that.",
-            style: AppTextStyles.bodyMuted,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Got it'),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Continuation Prompt ──────────────────────────────────────────────────────
-
-class _ContinuationPromptSheet extends StatelessWidget {
-  const _ContinuationPromptSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewPadding.bottom;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.page,
-        AppSpacing.md,
-        AppSpacing.page,
-        AppSpacing.md + bottomInset,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Nice work.', style: AppTextStyles.headline),
-          const SizedBox(height: AppSpacing.xs),
-          const Text(
-            'Ready for the next tiny step?',
-            style: AppTextStyles.bodyMuted,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text("Yes, let's continue"),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Not now'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

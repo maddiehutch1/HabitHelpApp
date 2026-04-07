@@ -89,8 +89,7 @@ class _CreateCardConfirmScreenState
       // Pop back to VoiceAISuggestionsScreen (named '/voiceSuggestions') and
       // let it process the next task in the queue.
       Navigator.of(context).popUntil(
-        (route) =>
-            route.settings.name == '/voiceSuggestions' || route.isFirst,
+        (route) => route.settings.name == '/voiceSuggestions' || route.isFirst,
       );
       widget.onCardSaved!();
     } else {
@@ -103,6 +102,7 @@ class _CreateCardConfirmScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.page),
