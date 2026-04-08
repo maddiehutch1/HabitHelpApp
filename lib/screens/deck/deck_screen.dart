@@ -28,6 +28,7 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
     with WidgetsBindingObserver {
   bool _navigating = false;
   bool _isFreshStartMode = false;
+  Set<String> _recentGoalLabels = {};
 
   @override
   void initState() {
@@ -109,6 +110,10 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
     try {
       await ref.read(cardsProvider.notifier).loadCards();
       await _loadPreferences();
+      final recentGoals = await ref
+          .read(cardsProvider.notifier)
+          .getGoalLabelsWithRecentSessions();
+      if (mounted) setState(() => _recentGoalLabels = recentGoals);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -514,6 +519,22 @@ class _DeckScreenState extends ConsumerState<DeckScreen>
                       child: _CardTile(
                         card: card,
                         onTap: () => _openCardDetail(card),
+                        showContinueNudge: () {
+                          final goal = (card.goalLabel != null && card.goalLabel!.isNotEmpty) ? card.goalLabel! : card.actionLabel;
+                          return goal.isNotEmpty && _recentGoalLabels.contains(goal);
+                        }(),
+                        onContinue: () {
+                          final goal = (card.goalLabel != null && card.goalLabel!.isNotEmpty) ? card.goalLabel! : card.actionLabel;
+                          if (goal.isEmpty) return null;
+                          return () async {
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => NextStepScreen(goalLabel: goal),
+                              ),
+                            );
+                            if (mounted) await _onLoad();
+                          };
+                        }(),
                       ),
                     );
                   },
@@ -557,10 +578,17 @@ enum _CardAction { start, edit, complete, continueNext }
 // ─── Card Tile ────────────────────────────────────────────────────────────────
 
 class _CardTile extends StatelessWidget {
-  const _CardTile({required this.card, required this.onTap});
+  const _CardTile({
+    required this.card,
+    required this.onTap,
+    this.showContinueNudge = false,
+    this.onContinue,
+  });
 
   final CardModel card;
   final VoidCallback onTap;
+  final bool showContinueNudge;
+  final VoidCallback? onContinue;
 
   @override
   Widget build(BuildContext context) {
@@ -598,6 +626,22 @@ class _CardTile extends StatelessWidget {
                             style: AppTextStyles.cardGoal,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      if (showContinueNudge && onContinue != null)
+                        Container(
+                          margin: const EdgeInsets.only(top: 8),
+                          alignment: Alignment.centerLeft,
+                          child: OutlinedButton(
+                            onPressed: onContinue,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.textMuted,
+                              side: const BorderSide(color: AppColors.border),
+                              minimumSize: Size.zero,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text('Next Step \u2192', style: TextStyle(fontSize: 12)),
                           ),
                         ),
                     ],

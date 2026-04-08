@@ -86,10 +86,9 @@ class _CompletionScreenState extends State<CompletionScreen>
                 confettiController: _confettiController,
                 blastDirectionality: BlastDirectionality.explosive,
                 shouldLoop: false,
-                numberOfParticles: 30,
-                maxBlastForce: 20,
-                minBlastForce: 8,
-                emissionFrequency: 0.05,
+                numberOfParticles: 10,
+                maxBlastForce: 15,
+                minBlastForce: 5,
                 colors: const [
                   Color(0xFFFFD700),
                   Color(0xFFFF6B6B),

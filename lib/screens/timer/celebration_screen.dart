@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../data/models/card_model.dart';
 import '../../routes.dart';
 import '../../theme.dart';
+import '../create_card/next_step_screen.dart';
 import '../deck/deck_screen.dart';
 
 class CelebrationScreen extends StatefulWidget {
@@ -62,10 +63,11 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
     return '$minutes ${minutes == 1 ? 'minute' : 'minutes'} of focus';
   }
 
-  void _handleDone() {
-    Navigator.of(
-      context,
-    ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
+  void _handleNextTask() {
+    Navigator.of(context).pushAndRemoveUntil(
+      fadeRoute(NextStepScreen(goalLabel: widget.card.goalLabel!)),
+      (route) => route.isFirst,
+    );
   }
 
   @override
@@ -83,10 +85,9 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
                   confettiController: _confettiController,
                   blastDirectionality: BlastDirectionality.explosive,
                   shouldLoop: false,
-                  numberOfParticles: 30,
-                  maxBlastForce: 20,
-                  minBlastForce: 8,
-                  emissionFrequency: 0.05,
+                  numberOfParticles: 10,
+                  maxBlastForce: 15,
+                  minBlastForce: 5,
                   colors: const [
                     Color(0xFFFFD700),
                     Color(0xFFFF6B6B),
@@ -126,14 +127,16 @@ class _CelebrationScreenState extends State<CelebrationScreen> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      SizedBox(
-                        width: double.infinity,
-                        child: FilledButton(
-                          onPressed: _handleDone,
-                          child: const Text('Do next task'),
+                      if (widget.card.goalLabel != null && widget.card.goalLabel!.isNotEmpty) ...[
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: _handleNextTask,
+                            child: const Text('Do next task'),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.xs),
+                      ],
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton(
