@@ -246,3 +246,15 @@ This is meant to be a CONCISE list of changes to track as we develop this projec
 - `lib/screens/timer/celebration_screen.dart` — Fixed the "Do next task" button routing bug introduced in a recent merge; it now correctly routes to `NextStepScreen` (if there's a goal label) instead of redundantly dumping to `DeckScreen`.
 - `lib/screens/timer/celebration_screen.dart` & `lib/screens/deck/completion_screen.dart` — Substantially reduced Confetti blast particles (30 -> 10) and blast force to restore a clean, minimalist pop instead of an intense shower.
 - `lib/screens/deck/deck_screen.dart` — Restored `showContinueNudge` logic and `_recentGoalLabels` tracking to successfully surface "Next Step" shortcuts for active projects, overruling the Phase 12 decision to remove it after determining Evans' Phase 8 implementation intent.
+
+---
+
+## Extra — Demo Polish
+*Apr 7, 2026*
+
+- `lib/screens/timer/celebration_screen.dart` — Removed post-completion explainer sheet ("That's how it works.") and continuation prompt ("Ready for the next tiny step?"); both added modal friction after task completion. "Do next task" and "Go back to home" now both navigate directly to `DeckScreen`. Removed unused imports (`shared_preferences`, `notification_service`, `next_step_screen`).
+- `lib/screens/deck/deck_screen.dart` — Permanently removed "Next Step →" nudge button from `_CardTile`; removed `showContinueNudge` and `onContinue` props, `_recentGoalLabels` state, and `getGoalLabelsWithRecentSessions()` call from `_onLoad`. Nudge was redundant — deck screen already surfaces all available cards.
+- `lib/screens/deck/completion_screen.dart` — Removed `onNextStep` prop and `hasNextStep` logic; primary button changed from "Plan my next step →" to "Do next task" (FilledButton); both "Do next task" and "Go back to home" now call `onComplete` and navigate to `DeckScreen`. Completion screen UI now matches `CelebrationScreen` exactly.
+- `lib/screens/deck/deck_screen.dart` — Removed `onNextStep` callback from both `CompletionScreen` call sites (card detail "Complete" action + swipe-to-complete); no longer navigates to `NextStepScreen` from completion flow.
+- `lib/screens/create_card/next_step_screen.dart` — Added "Save for later" `TextButton` below "Start"; extracted shared `_buildAndSaveCard()` helper; added `_submitting` guard; `_saveLater()` saves card to deck and navigates to `DeckScreen` without starting timer — matches `CreateCardConfirmScreen` pattern.
+- `lib/screens/welcome/welcome_screen.dart` — App name updated from "Micro-Deck" to "MicroDeck"; "Deck" bolded via `RichText`/`TextSpan` (`Micro` at `w300`, `Deck` at `w700`) while keeping both words visually joined.

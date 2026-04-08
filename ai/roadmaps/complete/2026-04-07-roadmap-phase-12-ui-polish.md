@@ -20,6 +20,11 @@
 - [x] Button order swapped: "Do next task" / "Plan my next step →" = `FilledButton`; "Go back to home" = `OutlinedButton`
 - [x] Randomized celebration headline (`celebrationPhrases` const list, 10 phrases, shared across both screens)
 - [x] Removed post-completion explainer sheet ("That's how it works.") and continuation prompt ("Ready for the next tiny step?") from `CelebrationScreen` — both added modal friction after task completion; "Do next task" now navigates directly to `DeckScreen`
+- [x] Removed "Next Step →" nudge from `_CardTile` in `deck_screen.dart`; removed `showContinueNudge`, `onContinue` props, `_recentGoalLabels` state, and `getGoalLabelsWithRecentSessions()` call
+- [x] Unified `CompletionScreen` buttons: removed `onNextStep` prop; both "Do next task" (FilledButton) and "Go back to home" (OutlinedButton) call `onComplete` → `DeckScreen`; matches `CelebrationScreen` exactly
+- [x] Removed `onNextStep` from both `CompletionScreen` call sites in `deck_screen.dart`
+- [x] Added "Save for later" to `NextStepScreen` — saves card without starting timer, navigates to `DeckScreen`; matches `CreateCardConfirmScreen` pattern
+- [x] Welcome screen branding: "Micro-Deck" → "MicroDeck" with "Deck" bolded via `RichText`/`TextSpan`
 
 ---
 

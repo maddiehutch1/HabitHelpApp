@@ -9,11 +9,14 @@
 
 ## Goals
 
-Polish three areas of the UI based on UX testing feedback:
+Polish several areas of the UI based on UX testing feedback, and remove friction for demo readiness:
 
-1. Fix the completion screen copy (showed the big goal instead of the small step completed), rename the primary button, and add a "Plan my next step" shortcut.
+1. Fix the completion screen copy (showed the big goal instead of the small step completed) and unify button labels across all completion flows.
 2. Improve the voice AI suggestions edit/confirm icon affordance — they were too small and hard to distinguish.
-3. Redesign the card detail sheet secondary buttons to have proper visual weight without competing with the primary Start action. Remove the inline "Continue →" nudge from deck list cards — it added visual noise and cognitive load without adding value beyond the detail sheet.
+3. Redesign the card detail sheet secondary buttons to have proper visual weight without competing with the primary Start action. Remove the inline "Next Step →" nudge from deck list cards — it added visual noise and cognitive load without adding value beyond the detail sheet.
+4. Remove post-completion modals (explainer + continuation prompt) that broke momentum and were redundant.
+5. Add "Save for later" to `NextStepScreen` to match the create card flow.
+6. Update welcome screen branding to "MicroDeck" with "Deck" bolded.
 
 ---
 
@@ -21,17 +24,15 @@ Polish three areas of the UI based on UX testing feedback:
 
 ### 1. `lib/screens/deck/completion_screen.dart`
 - Show `widget.card.actionLabel` (the small step) instead of `goalLabel ?? actionLabel`
-- Rename primary button "I'm finished" → "Go Back to Home"
-- Add optional `VoidCallback? onNextStep` parameter
-- When `onNextStep != null` and card has a `goalLabel`, show a full-width `OutlinedButton` ("Plan my next step →") that fades in with the primary button
+- Removed `onNextStep` prop — both "Do next task" (FilledButton) and "Go back to home" (OutlinedButton) call `onComplete` and navigate to `DeckScreen`
+- UI now matches `CelebrationScreen` exactly
 
 ### 2. `lib/screens/deck/deck_screen.dart`
-- Both `CompletionScreen` usages (card detail action + swipe-to-complete) updated to pass `onNextStep` callback that: completes the card, pops to DeckScreen, then pushes `NextStepScreen`
-- Only passed when `card.goalLabel` is non-empty
+- Both `CompletionScreen` usages (card detail action + swipe-to-complete) updated to remove `onNextStep` — completion always returns to `DeckScreen`
 - Removed `_recentGoalLabels` state field
 - Removed `getGoalLabelsWithRecentSessions()` call from `_onLoad()`
-- Simplified `_CardTile` call site — removed `showContinueNudge` and `onContinue` args
-- Cleaned up `_CardTile` widget — removed those props and the nudge `OutlinedButton`
+- Removed `showContinueNudge` and `onContinue` props from `_CardTile` and all call sites
+- Removed "Next Step →" `OutlinedButton` from `_CardTile` body
 
 ### 3. `lib/screens/create_card/voice_ai_suggestions_screen.dart`
 - Edit/confirm icon size: `18` → `22`
@@ -47,9 +48,8 @@ Polish three areas of the UI based on UX testing feedback:
 
 ### 5. Completion screen button order & randomized headline
 
-- Swap primary/secondary buttons on both `CelebrationScreen` and `CompletionScreen`: "Do next task" / "Plan my next step →" is now `FilledButton` (primary); "Go back to home" is now `OutlinedButton` (secondary)
-- Extract a shared `const celebrationPhrases` list in `celebration_screen.dart`; both screens pick a random phrase in `initState` so the headline never feels repetitive
-  - Phrases: "You did it.", "Nice work.", "Nailed it.", "Way to go.", "That's a win.", "You showed up.", "One step done.", "Look at that.", "That counts.", "Momentum built."
+- Both `CelebrationScreen` and `CompletionScreen` use "Do next task" (FilledButton, primary) + "Go back to home" (OutlinedButton, secondary)
+- Shared `const celebrationPhrases` list (10 phrases) in `celebration_screen.dart`; both screens pick a random phrase per session so completion never feels repetitive
 
 ---
 
@@ -62,7 +62,20 @@ Polish three areas of the UI based on UX testing feedback:
 
 ---
 
+### 7. "Save for later" on `NextStepScreen`
+
+- Added `_saveLater()` method and `_submitting` guard
+- Extracted shared `_buildAndSaveCard()` helper used by both `_start()` and `_saveLater()`
+- "Save for later" `TextButton` added below "Start" — saves card to deck without starting the timer, navigates to `DeckScreen`
+- Matches the `CreateCardConfirmScreen` pattern
+
+### 8. Welcome screen branding
+
+- App name updated from "Micro-Deck" to "MicroDeck"
+- Rendered via `RichText`/`TextSpan`: "Micro" at `FontWeight.w300`, "Deck" at `FontWeight.w700` — visually joined, "Deck" bolded
+
+---
+
 ## Out of Scope
 
 - No changes to timer, notification, or data layer
-- No new screens or routes
