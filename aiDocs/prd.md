@@ -1,7 +1,7 @@
 ﻿# Product Requirements Document — Micro-Deck
-**Version:** 1.1
+**Version:** 1.2
 **Status:** Active
-**Last Updated:** March 2026
+**Last Updated:** April 2026
 **Platform:** Flutter (iOS + Android)
 **Scope:** v1 MVP
 
@@ -163,14 +163,13 @@ The primary view of the app. A vertical stack of user-created cards.
 - Optional schedule indicator (e.g., "Mon · Wed · Fri")
 
 **Deck interactions:**
-- **Tap card** → opens timer screen for that card
-- **Swipe left** → defer (moves card to bottom of deck for today)
-- **Long press** → edit or archive options
-- **Pull down** → reveal "Just One" mode (shows only top card, hides rest)
+- **Tap card** → opens card detail bottom sheet (Start / What's next / Edit / Complete)
+- **Swipe right** → complete card (triggers completion celebration flow)
+- **"Continue →" nudge** — cards with recent goal activity show a tap target to jump straight to the next-step flow
 
 **Deck rules:**
 - No card limit — freemium/IAP layer removed (deferred to a future evidence-first phase)
-- Cards are ordered by creation time; tap to start timer at any time
+- Cards are ordered by creation time
 - Fresh Start mode: optional daily rollover archives active cards each new day
 
 ### 4.3 Card Creation
@@ -210,9 +209,15 @@ The core ritual experience.
 
 **Completion:**
 - Haptic pulse fires at zero (medium impact, single beat — not a buzz)
-- Countdown replaced by a single word or short phrase (e.g., "Done." or "Started.")
-- 2-second pause, then soft return-to-deck animation
-- No streak update, no confetti, no score — intentional
+- Full-screen celebration with subtle confetti (10 particles, minimalist pop), randomized warm headline from a rotating phrase list, and focus-time summary
+- Primary action: "Do next task" / "Plan my next step →" (if card has a goal) routes to `NextStepScreen` for continuation
+- Secondary action: "Go back to home" returns to deck
+- No streak update, no score — intentional
+
+**Continuation flow (momentum capture):**
+- After completing a timer, user is prompted to define the next tiny step for the same goal
+- `NextStepScreen` shows goal context, action input with AI assistance, and a Start button that creates a new card and immediately starts a timer
+- This creates a natural loop: complete → celebrate → next step → timer → complete
 
 **Abandoned session:**
 - If user exits early (via back button after pause), card returns to deck without judgment
@@ -236,35 +241,19 @@ The core ritual experience.
 - On each app open: flush expired scheduled notifications, compute next N upcoming, register only those
 - Graceful degradation: if user has denied notifications, deck still functions fully — scheduling is visible on cards but doesn't fire
 
-### 4.6 Card Archiving (the "Dormant Deck")
+### 4.6 Card Archiving & Completion
 
-**Archiving trigger — user-initiated only:**
-After a card has been deferred (swiped left) 3 or more times in a week, a gentle, non-urgent prompt appears:
+**Completion:** User completes a card via swipe-to-complete on the deck or the Complete action in the card detail sheet. Completed cards move to the "Completed" section in Past Days and can be restored via long-press.
 
-> *"You've set this one aside a few times. Want to rest it for now?"*
+**Daily archiving (Fresh Start mode):** When enabled, active cards are automatically archived at the start of each new day. Archived cards are grouped by date in the Past Days screen and can be restored to the active deck via long-press → "Move to today."
 
-Options: **Rest it** (archives to Dormant Deck) | **Keep it** (no judgment, dismisses prompt permanently for 7 days)
+**Past Days screen:**
+- "Completed" section at top for finished goals
+- Date-grouped archived cards below ("Yesterday", "Mar 26", etc.)
+- Both completed and archived cards are fully restorable at any time
+- No shame data — no failure language anywhere
 
-**Dormant Deck:**
-- Accessible via a quiet "Resting" section at the bottom of settings or deck view
-- Cards are fully retrievable at any time
-- No timestamps of when they were archived — no shame data
-- Language throughout: "resting," "paused," "dormant" — never "failed," "missed," "abandoned"
-
-### 4.7 "Just One" Mode
-
-For users in a low-function state who can't engage with a full deck.
-
-**Activation:** pull down on deck view or tap a "Just One" button in the corner
-
-**Experience:**
-- Shows only the top card, centered on screen
-- All other cards hidden
-- Two options: [Start] or [Not today]
-- "Not today" moves the card to tomorrow with no prompt, no guilt copy
-- Mode persists until user dismisses it
-
-### 4.8 Monetization — Deferred
+### 4.7 Monetization — Deferred
 
 Freemium / IAP layer was removed in February 2026 (before sufficient user evidence existed to validate pricing and Pro feature value). All features are freely accessible in the current build. Monetization is a hypothesis to revisit post-launch with real retention and engagement data.
 
@@ -365,7 +354,7 @@ These are not aesthetic guidelines — they are decision filters. When a design 
 - Dark, calm palette — not sterile, not playful
 - Large, readable typography — accessibility is a baseline, not a feature
 - Minimal chrome: no tab bars during active sessions, no persistent navigation during timer
-- Motion: purposeful and slow — no snappy animations, no bounces, no celebration effects
+- Motion: purposeful and slow — no snappy animations, no bounces; subtle confetti on goal completion (minimalist, 10 particles)
 
 ---
 
@@ -457,10 +446,12 @@ The following are explicitly excluded from v1 to maintain product focus:
 
 These require user research or early testing to resolve before implementation:
 
-1. **Deferral threshold for archiving prompt:** Is 3 deferrals in a week the right trigger? Could be too aggressive for infrequent users.
-2. **Default timer duration:** Is 2 minutes the right default for onboarding, or should the first card use a 1-minute default to lower the bar further?
-3. **Notification copy:** Does using the card's action label verbatim in the notification feel personal or robotic? Needs copy testing.
-4. **"Just One" mode discoverability:** Pull-down is low-discoverability — consider whether this needs a more visible entry point.
-5. **Free tier card limit:** 5 cards per 1 goal — is this enough for users to feel the value of the product, or does it feel too constrained for real use?
-6. **Pro paywall timing:** Show after first completion vs. after first session with 3+ cards completed — which moment produces higher conversion?
+1. **Default timer duration:** Is 2 minutes the right default for onboarding, or should the first card use a 1-minute default to lower the bar further?
+2. **Notification copy:** Does using the card's action label verbatim in the notification feel personal or robotic? Needs copy testing.
+3. **Continuation flow adoption:** Do users naturally engage with the "Plan my next step" prompt after completion, or does it feel like pressure? Early user testing suggests positive reception but needs broader validation.
+
+**Resolved since v1.1:**
+- Deferral-based archive prompt removed (Phase 8) — replaced by explicit user-initiated completion and Fresh Start daily rollover
+- "Just One" mode removed (Phase 12) — low discoverability confirmed; card detail sheet provides sufficient focus
+- Free tier card limit and Pro paywall removed (Feb 2026) — monetization deferred to evidence-first phase
 

@@ -50,11 +50,13 @@ Core philosophy: **one card, two minutes, no judgment.**
 
 ## Current Focus
 
-Phases 0–10 are complete. Phase roadmaps are archived in `ai/roadmaps/complete/`. The high-level project plan (`ai/roadmaps/2026-02-19-high-level-project-plan.md`) stays at the roadmaps root as a persistent reference.
+All 12 phases are complete. Phase roadmaps are archived in `ai/roadmaps/complete/`. The high-level project plan (`ai/roadmaps/2026-02-19-high-level-project-plan.md`) stays at the roadmaps root as a persistent reference.
 
-**Phase 11 (UI Polish & Voice Fix)** addressed four usability issues: shortened the voice transcription button text, added confetti to the goal-completion screen, fixed voice-created task hierarchy so continuation flow works (goalLabel = AI title, actionLabel = "Get started"), fixed card detail sheet overflow, and added restore-from-archive for completed cards.
+**Phase 12 (UI Polish)** unified completion/celebration screens with randomized headlines, reduced confetti intensity, removed "Just One" mode dead code, fixed navigation stack issues, and restored continue-nudge logic on deck cards.
 
-**CLI Testing Infrastructure** is complete. Run `.\\scripts\\test.ps1` (Windows) or `bash scripts/test.sh` (Mac/Linux). See `TEST_README.md` and `ai/roadmaps/complete/2026-02-21-extra-cli-testing.md`.
+**Final UI Polish & Bug Squashing** (Apr 7) fixed voice suggestion overflow, celebration screen navigation bugs, confetti particle count, and restored "Next Step" shortcuts on deck cards.
+
+**CLI Testing Infrastructure** is complete. Run `scripts/test.ps1` (Windows) or `bash scripts/test.sh` (Mac/Linux). See `TEST_README.md` and `ai/roadmaps/complete/2026-02-21-extra-cli-testing.md`.
 
 ---
 
