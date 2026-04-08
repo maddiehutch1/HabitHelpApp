@@ -16,7 +16,18 @@ class WelcomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Spacer(flex: 3),
-              const Text('Micro-Deck', style: AppTextStyles.appName),
+              RichText(
+                text: const TextSpan(
+                  style: AppTextStyles.appName,
+                  children: [
+                    TextSpan(
+                      text: 'Micro',
+                      style: TextStyle(fontWeight: FontWeight.w300),
+                    ),
+                    TextSpan(text: 'Deck'),
+                  ],
+                ),
+              ),
               const SizedBox(height: AppSpacing.sm),
               const Text(
                 'Start the thing you keep putting off.',
