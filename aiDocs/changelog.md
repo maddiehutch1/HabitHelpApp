@@ -192,6 +192,10 @@ This is meant to be a CONCISE list of changes to track as we develop this projec
 - `lib/screens/timer/timer_screen.dart` — Overtime "Do next task" now skips `CelebrationScreen`; navigates directly to `NextStepScreen` (if card has goal) or `DeckScreen` (if not)
 - `lib/screens/create_card/voice_ai_suggestions_screen.dart` — Converted to `ConsumerStatefulWidget`; "Add selected" now batch-creates cards via `cardsProvider.notifier.addCard()` instead of stepping through `CreateCardGoalScreen` per task; removed `_queue` and `_processNextTask()`
 - `lib/screens/deck/deck_screen.dart` — Swipe-to-defer replaced with swipe-to-complete; triggers `CompletionScreen` flow via `confirmDismiss`
+- `lib/app.dart` & `lib/screens/` — Implemented global intuitive keyboard dismissal (tapping outside TextFields properly unfocuses them) across goal screens, action screens, UI sheets, and AI forms.
+- `lib/screens/create_card/next_step_screen.dart` & `lib/screens/create_card/create_card_action_screen.dart` — Improved AI suggestion interactivity clarity by wrapping `_SuggestionTile` in `Material` and `InkWell`, adding an upward arrow icon, and a subtle border stroke (`AppColors.aiAccent`) to distinguish AI suggestions as interactive elements.
+- `ai/notes/possible-future-feature-swipe-timer.md` (new) — Documented out-of-scope swipe-to-set timer UX proposal.
+- `lib/screens/deck/widgets/card_detail_sheet.dart` & `lib/screens/deck/deck_screen.dart` — Added dynamic `safePadding` to bottom sheets to gracefully handle global bottom padding and OS navigation zones without clipping content.
 - `flutter analyze` — no issues
 
 ---
@@ -231,3 +235,14 @@ This is meant to be a CONCISE list of changes to track as we develop this projec
 - `assets/app_icon.png` (new) — custom 1024×1024 app icon (black background, white cards/checkmark graphic)
 - `pubspec.yaml` — added `flutter_launcher_icons 0.14.4` dev dependency; registered `assets/` folder; configured `adaptive_icon_background: #000000` so Android never shows a white ring behind the icon
 - Ran `flutter pub run flutter_launcher_icons` — generated all Android (legacy + adaptive) and iOS icon sizes
+
+---
+
+## Extra — Final UI Polish & Bug Squashing
+*Apr 7, 2026*
+
+- `lib/screens/create_card/voice_ai_suggestions_screen.dart` — Wrapped the screen in a `ListView` to resolve pixel overflow crashes when the keyboard appears during inline editing.
+- `lib/screens/timer/timer_screen.dart` & `lib/screens/timer/celebration_screen.dart` — Fixed aggressive navigation stack clearing (`pushAndRemoveUntil` with `route.isFirst` instead of `false`) to prevent the app from routing to a blank, black screen when pressing Back.
+- `lib/screens/timer/celebration_screen.dart` — Fixed the "Do next task" button routing bug introduced in a recent merge; it now correctly routes to `NextStepScreen` (if there's a goal label) instead of redundantly dumping to `DeckScreen`.
+- `lib/screens/timer/celebration_screen.dart` & `lib/screens/deck/completion_screen.dart` — Substantially reduced Confetti blast particles (30 -> 10) and blast force to restore a clean, minimalist pop instead of an intense shower.
+- `lib/screens/deck/deck_screen.dart` — Restored `showContinueNudge` logic and `_recentGoalLabels` tracking to successfully surface "Next Step" shortcuts for active projects, overruling the Phase 12 decision to remove it after determining Evans' Phase 8 implementation intent.
