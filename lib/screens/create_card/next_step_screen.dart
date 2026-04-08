@@ -6,6 +6,7 @@ import '../../providers/cards_provider.dart';
 import '../../routes.dart';
 import '../../services/ai_service.dart';
 import '../../theme.dart';
+import '../deck/deck_screen.dart';
 import '../timer/timer_screen.dart';
 
 class NextStepScreen extends ConsumerStatefulWidget {
@@ -23,6 +24,7 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
   List<String>? _suggestions;
   String? _smallerSuggestion;
   bool _loadingSmaller = false;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -30,10 +32,9 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
     super.dispose();
   }
 
-  Future<void> _start() async {
+  Future<CardModel?> _buildAndSaveCard() async {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
-
+    if (text.isEmpty) return null;
     final now = DateTime.now().millisecondsSinceEpoch;
     final card = CardModel(
       id: now.toString(),
@@ -43,11 +44,34 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
       sortOrder: 0,
       createdAt: now,
     );
-
     await ref.read(cardsProvider.notifier).addCard(card);
+    return card;
+  }
 
+  Future<void> _start() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    final card = await _buildAndSaveCard();
     if (!mounted) return;
+    if (card == null) {
+      setState(() => _submitting = false);
+      return;
+    }
     Navigator.of(context).pushReplacement(fadeRoute(TimerScreen(card: card)));
+  }
+
+  Future<void> _saveLater() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    final card = await _buildAndSaveCard();
+    if (!mounted) return;
+    if (card == null) {
+      setState(() => _submitting = false);
+      return;
+    }
+    Navigator.of(
+      context,
+    ).pushAndRemoveUntil(fadeRoute(const DeckScreen()), (route) => false);
   }
 
   Future<void> _showAISuggestions() async {
@@ -248,7 +272,7 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                   ),
                 ),
               ),
-              // CTA button pinned above keyboard
+              // CTA buttons pinned above keyboard
               const SizedBox(height: AppSpacing.sm),
               SizedBox(
                 width: double.infinity,
@@ -256,12 +280,28 @@ class _NextStepScreenState extends ConsumerState<NextStepScreen> {
                   button: true,
                   label: 'Start',
                   child: FilledButton(
-                    onPressed: _controller.text.trim().isEmpty ? null : _start,
+                    onPressed: (_controller.text.trim().isEmpty || _submitting)
+                        ? null
+                        : _start,
                     child: const Text('Start'),
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.xs),
+              SizedBox(
+                width: double.infinity,
+                child: Semantics(
+                  button: true,
+                  label: 'Save for later',
+                  child: TextButton(
+                    onPressed: (_controller.text.trim().isEmpty || _submitting)
+                        ? null
+                        : _saveLater,
+                    child: const Text('Save for later'),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
             ],
           ),
         ),

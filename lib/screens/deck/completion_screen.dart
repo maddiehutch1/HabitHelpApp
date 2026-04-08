@@ -11,16 +11,10 @@ class CompletionScreen extends StatefulWidget {
     super.key,
     required this.card,
     required this.onComplete,
-    this.onNextStep,
   });
 
   final CardModel card;
   final VoidCallback onComplete;
-
-  /// Optional callback for "Plan my next step". When provided and the card
-  /// has a goalLabel, a secondary OutlinedButton is shown below the primary
-  /// action.
-  final VoidCallback? onNextStep;
 
   @override
   State<CompletionScreen> createState() => _CompletionScreenState();
@@ -70,11 +64,6 @@ class _CompletionScreenState extends State<CompletionScreen>
 
   @override
   Widget build(BuildContext context) {
-    final hasNextStep =
-        widget.card.goalLabel != null &&
-        widget.card.goalLabel!.isNotEmpty &&
-        widget.onNextStep != null;
-
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -127,16 +116,14 @@ class _CompletionScreenState extends State<CompletionScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (hasNextStep) ...[
-                            SizedBox(
-                              width: double.infinity,
-                              child: FilledButton(
-                                onPressed: widget.onNextStep,
-                                child: const Text('Plan my next step →'),
-                              ),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: widget.onComplete,
+                              child: const Text('Do next task'),
                             ),
-                            const SizedBox(height: AppSpacing.xs),
-                          ],
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton(
